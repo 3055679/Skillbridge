@@ -1,0 +1,12 @@
+{% autoescape off %}
+Hello,
+
+Please click on the link below to verify your university email address:
+
+http://{{ domain }}{% url 'accounts:verify_email' token=token %}
+
+If you didn't request this, please ignore this email.
+
+Best regards,
+The SkillBridge Team
+{% endautoescape %}

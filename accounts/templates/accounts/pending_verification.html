@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-body p-5 text-center">
+                    <div class="mb-4">
+                        <i class="bi bi-hourglass-split text-warning" style="font-size: 3rem;"></i>
+                    </div>
+                    <h2 class="mb-3">Account Under Review</h2>
+                    <p class="mb-4">Your student ID document is being verified by our team. This process typically takes 1-2 business days.</p>
+                    <p>You'll receive an email notification once your account is approved.</p>
+                    <a href="{% url 'accounts:logout' %}" class="btn btn-outline-primary mt-3">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

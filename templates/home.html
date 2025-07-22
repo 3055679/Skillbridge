@@ -1,0 +1,519 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    /* Hero Section */
+    .hero-section {
+        background: linear-gradient(135deg, rgba(67, 97, 238, 0.9), rgba(63, 55, 201, 0.9)),
+                    url('{% static "images/hero-bg.jpg" %}') no-repeat center center;
+        background-size: cover;
+        color: white;
+        padding: 120px 0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .hero-content {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .hero-section::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.3);
+        z-index: 1;
+    }
+    
+    /* Section Styling */
+    .section-title {
+        position: relative;
+        display: inline-block;
+        margin-bottom: 30px;
+    }
+    
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 3px;
+        background: var(--primary-color);
+    }
+    
+    /* Category Cards */
+    .category-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+    
+    .category-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    }
+    
+    .category-card h4 {
+        color: var(--primary-color);
+        position: relative;
+        padding-bottom: 10px;
+    }
+    
+    .category-card h4::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 40px;
+        height: 2px;
+        background: var(--primary-color);
+    }
+    
+    /* Process Steps */
+    .step-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        padding: 30px 20px;
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+    
+    .step-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    
+    .step-badge {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin: 0 auto 20px;
+    }
+    
+    /* Testimonials */
+    .testimonial-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        padding: 30px;
+        height: 100%;
+        transition: all 0.3s ease;
+    }
+    
+    .testimonial-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    
+    /* CTA Section */
+.cta-section {
+    background: linear-gradient(135deg, #4361ee, #3a0ca3);
+    padding: 5rem 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.cta-section .btn-light {
+    background-color: white;
+    color: #4361ee; /* Matching the blue gradient */
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.cta-section .btn-light:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    background-color: white;
+}
+
+.cta-section .btn-outline-light {
+    border: 2px solid white;
+    color: white;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.cta-section .btn-outline-light:hover {
+    background-color: rgba(255,255,255,0.1);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    color: white;
+}
+
+.text-white-75 {
+    color: rgba(255,255,255,0.85);
+}
+
+/* Optional: Add subtle pattern overlay */
+.cta-section::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px);
+    background-size: 10px 10px;
+    z-index: 1;
+    opacity: 0.5;
+}
+
+@media (max-width: 768px) {
+    .cta-section {
+        padding: 3rem 1rem;
+    }
+    
+    .cta-section .btn {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+    
+    h2.display-4 {
+        font-size: 2.5rem;
+    }
+}
+    
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+        .hero-section {
+            padding: 80px 0;
+        }
+        
+        .hero-content h1 {
+            font-size: 2.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container text-center hero-content">
+        <h1 class="display-3 fw-bold mb-4">Find Your Dream Internship</h1>
+        <p class="lead mb-5">Connect with top companies and kickstart your career journey</p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{% url 'jobs:job_list' %}" class="btn btn-light btn-lg px-4 py-2 rounded-pill">
+                <i class="bi bi-search me-2"></i> Browse Jobs
+            </a>
+            <a href="{% url 'accounts:student_signup' %}" class="btn btn-outline-light btn-lg px-4 py-2 rounded-pill">
+                <i class="bi bi-person-plus me-2"></i> Get Started
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Top Categories Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold section-title">Top Categories</h2>
+            <p class="text-muted">Explore opportunities in popular fields</p>
+        </div>
+        
+        <div class="row g-4">
+            <!-- Category Column 1 -->
+            <div class="col-md-4">
+                <div class="category-card p-4 h-100">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-primary bg-opacity-10 p-3 rounded me-3">
+                            <i class="bi bi-briefcase text-primary fs-4"></i>
+                        </div>
+                        <h4 class="mb-0">Internships</h4>
+                    </div>
+                    <ul class="list-unstyled">
+                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span>Graphic Designer</span>
+                            <span class="badge bg-primary rounded-pill">292 positions</span>
+                        </li>
+                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span>Web Development</span>
+                            <span class="badge bg-primary rounded-pill">292 positions</span>
+                        </li>
+                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span>Data Science</span>
+                            <span class="badge bg-primary rounded-pill">128 positions</span>
+                        </li>
+                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span>Marketing</span>
+                            <span class="badge bg-primary rounded-pill">87 positions</span>
+                        </li>
+                        <li class="d-flex justify-content-between align-items-center py-2">
+                            <span>UI/UX Design</span>
+                            <span class="badge bg-primary rounded-pill">64 positions</span>
+                        </li>
+                    </ul>
+                    <a href="#" class="btn btn-link text-primary mt-3 ps-0">
+                        View all internships <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Category Column 2 -->
+            <div class="col-md-4">
+                <div class="category-card p-4 h-100">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-primary bg-opacity-10 p-3 rounded me-3">
+                            <i class="bi bi-building text-primary fs-4"></i>
+                        </div>
+                        <h4 class="mb-0">Full-time</h4>
+                    </div>
+                    <ul class="list-unstyled">
+                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span>Web Designer</span>
+                            <span class="badge bg-primary rounded-pill">292 positions</span>
+                        </li>
+                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span>Project Management</span>
+                            <span class="badge bg-primary rounded-pill">292 positions</span>
+                        </li>
+                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span>Software Development</span>
+                            <span class="badge bg-primary rounded-pill">292 positions</span>
+                        </li>
+                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span>PHP Programming</span>
+                            <span class="badge bg-primary rounded-pill">292 positions</span>
+                        </li>
+                        <li class="d-flex justify-content-between align-items-center py-2">
+                            <span>SEO</span>
+                            <span class="badge bg-primary rounded-pill">292 positions</span>
+                        </li>
+                    </ul>
+                    <a href="#" class="btn btn-link text-primary mt-3 ps-0">
+                        View all full-time jobs <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Category Column 3 -->
+            <div class="col-md-4">
+                <div class="category-card p-4 h-100">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-primary bg-opacity-10 p-3 rounded me-3">
+                            <i class="bi bi-lightning-charge text-primary fs-4"></i>
+                        </div>
+                        <h4 class="mb-0">Gigs</h4>
+                    </div>
+                    <ul class="list-unstyled">
+                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span>Email Marketing</span>
+                            <span class="badge bg-primary rounded-pill">292 positions</span>
+                        </li>
+                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span>Content Designer</span>
+                            <span class="badge bg-primary rounded-pill">292 positions</span>
+                        </li>
+                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span>Affiliate Marketing</span>
+                            <span class="badge bg-primary rounded-pill">292 positions</span>
+                        </li>
+                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span>Influencer Marketing</span>
+                            <span class="badge bg-primary rounded-pill">292 positions</span>
+                        </li>
+                        <li class="d-flex justify-content-between align-items-center py-2">
+                            <span>Social Media Marketing</span>
+                            <span class="badge bg-primary rounded-pill">292 positions</span>
+                        </li>
+                    </ul>
+                    <a href="#" class="btn btn-link text-primary mt-3 ps-0">
+                        View all gigs <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold section-title">How It Works</h2>
+            <p class="text-muted">Simple steps to get your dream internship</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="step-card text-center">
+                    <div class="step-badge mb-4">
+                        1
+                    </div>
+                    <div class="icon-wrapper bg-primary bg-opacity-10 p-3 rounded-circle d-inline-flex mb-3">
+                        <i class="bi bi-person-plus text-primary fs-3"></i>
+                    </div>
+                    <h4 class="mb-3">Create Profile</h4>
+                    <p class="text-muted">Sign up and complete your student profile with your skills and education</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="step-card text-center">
+                    <div class="step-badge mb-4">
+                        2
+                    </div>
+                    <div class="icon-wrapper bg-primary bg-opacity-10 p-3 rounded-circle d-inline-flex mb-3">
+                        <i class="bi bi-search text-primary fs-3"></i>
+                    </div>
+                    <h4 class="mb-3">Find Opportunities</h4>
+                    <p class="text-muted">Browse and apply for internships that match your skills and interests</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="step-card text-center">
+                    <div class="step-badge mb-4">
+                        3
+                    </div>
+                    <div class="icon-wrapper bg-primary bg-opacity-10 p-3 rounded-circle d-inline-flex mb-3">
+                        <i class="bi bi-briefcase text-primary fs-3"></i>
+                    </div>
+                    <h4 class="mb-3">Get Hired</h4>
+                    <p class="text-muted">Complete assessments and interviews to land your dream internship</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-center mt-5">
+            <a href="{% url 'accounts:student_signup' %}" class="btn btn-primary btn-lg px-4 py-2 rounded-pill">
+                <i class="bi bi-rocket me-2"></i> Start Your Journey
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold section-title">Success Stories</h2>
+            <p class="text-muted">What our students and employers say about us</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="testimonial-card">
+                    <div class="mb-3 text-warning">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                    </div>
+                    <p class="fst-italic mb-4">"Absolutely thrilled with the platform! Found my dream internship in just 2 weeks. The process was smooth and efficient. The assessment tools helped me showcase my skills effectively."</p>
+                    <div class="d-flex align-items-center">
+                        <img src="{% static 'images/user1.jpg' %}" class="rounded-circle me-3" width="60" height="60" alt="User">
+                        <div>
+                            <h6 class="mb-1">Sarah Johnson</h6>
+                            <small class="text-muted">Computer Science Student at Stanford</small>
+                            <div class="mt-2">
+                                <span class="badge bg-primary">Google Summer Intern 2023</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="testimonial-card">
+                    <div class="mb-3 text-warning">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                    </div>
+                    <p class="fst-italic mb-4">"Great talent pool! We hired 3 excellent interns through SkillBridge. The assessment tools helped us find candidates with the right skills quickly. The platform saved us countless hours in the hiring process."</p>
+                    <div class="d-flex align-items-center">
+                        <img src="{% static 'images/user2.jpg' %}" class="rounded-circle me-3" width="60" height="60" alt="User">
+                        <div>
+                            <h6 class="mb-1">Michael Chen</h6>
+                            <small class="text-muted">HR Director at TechCorp</small>
+                            <div class="mt-2">
+                                <span class="badge bg-primary">Hired 5 interns in 2023</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+
+<!-- Call to Action -->
+<section class="cta-section py-5 position-relative">
+    <div class="container text-center position-relative" style="z-index: 2;">
+        <h2 class="fw-bold mb-4 display-4 text-white">Ready to start your journey?</h2>
+        <p class="lead mb-5 text-white-75">Join thousands of students and companies finding perfect matches</p>
+        <div class="d-flex flex-wrap justify-content-center gap-3">
+            <a href="{% url 'accounts:student_signup' %}" class="btn btn-light btn-lg px-4 py-3 rounded-pill shadow-sm">
+                <i class="bi bi-person-plus me-2"></i> Sign Up as Student
+            </a>
+            <a href="{% url 'accounts:employer_signup' %}" class="btn btn-outline-light btn-lg px-4 py-3 rounded-pill shadow-sm">
+                <i class="bi bi-building me-2"></i> Post Jobs
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const targetId = this.getAttribute('href');
+            if (targetId === '#') return;
+            
+            const targetElement = document.querySelector(targetId);
+            if (targetElement) {
+                window.scrollTo({
+                    top: targetElement.offsetTop - 80,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+    
+    // Animate elements when they come into view
+    const animateOnScroll = function() {
+        const elements = document.querySelectorAll('.category-card, .step-card, .testimonial-card');
+        
+        elements.forEach(element => {
+            const elementPosition = element.getBoundingClientRect().top;
+            const screenPosition = window.innerHeight / 1.2;
+            
+            if (elementPosition < screenPosition) {
+                element.style.opacity = '1';
+                element.style.transform = 'translateY(0)';
+            }
+        });
+    };
+    
+    // Set initial state for animation
+    document.querySelectorAll('.category-card, .step-card, .testimonial-card').forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'all 0.6s ease';
+    });
+    
+    window.addEventListener('scroll', animateOnScroll);
+    animateOnScroll(); // Run once on load
+});
+</script>
+{% endblock %}

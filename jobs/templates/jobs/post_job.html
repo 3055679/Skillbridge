@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load static crispy_forms_tags %}
+
+{% block title %}Post a Job | SkillBridge{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2>Post a New Job</h2>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        {{ form.title|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.job_type|as_crispy_field }}
+                    </div>
+                </div>
+                
+                {{ form.description|as_crispy_field }}
+                
+                <div class="requirements-section mb-4">
+                    <h5>Specific Requirements</h5>
+                    <div class="alert alert-info">
+                        <small>
+                            <i class="bi bi-info-circle"></i> 
+                            List the specific skills/qualifications needed (one per line or as bullet points)
+                        </small>
+                    </div>
+                    {{ form.requirements|as_crispy_field }}
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        {{ form.location|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.salary|as_crispy_field }}
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="bi bi-send"></i> Post Job
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

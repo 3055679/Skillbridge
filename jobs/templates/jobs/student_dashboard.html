@@ -1,0 +1,635 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Student Dashboard | SkillBridge{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3f37c9;
+        --accent-color: #4895ef;
+        --light-bg: #f8f9fa;
+        --dark-bg: #212529;
+    }
+    
+    /* Sidebar Styles */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 100;
+        padding: 48px 0 0;
+        background: linear-gradient(135deg, var(--dark-bg), #2b2d42);
+        box-shadow: 2px 0 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s;
+    }
+    
+    .sidebar .nav-link {
+        color: rgba(255, 255, 255, 0.8);
+        padding: 0.75rem 1.5rem;
+        margin: 0.25rem 1rem;
+        border-radius: 8px;
+        transition: all 0.3s;
+    }
+    
+    .sidebar .nav-link.active {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        font-weight: 500;
+    }
+    
+    .sidebar .nav-link:hover:not(.active) {
+        background: rgba(255, 255, 255, 0.05);
+        color: white;
+    }
+    
+    .sidebar .nav-link i {
+        width: 24px;
+        text-align: center;
+    }
+    
+    .profile-card {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 1rem;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .profile-img {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border: 3px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Main Content Styles */
+    main {
+        padding-top: 1.5rem;
+        background-color: var(--light-bg);
+        min-height: 100vh;
+    }
+    
+    .dashboard-header {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    /* Stats Cards */
+    .stat-card {
+        border-radius: 12px;
+        overflow: hidden;
+        border: none;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    }
+    
+    .stat-card .card-body {
+        padding: 1.5rem;
+    }
+    
+    /* Section Cards */
+    .section-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+        transition: all 0.3s ease;
+    }
+    
+    .section-card:hover {
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    .section-card .card-header {
+        background: white;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        border-radius: 12px 12px 0 0 !important;
+        padding: 1.25rem 1.5rem;
+    }
+    
+    /* Table Styles */
+    .table-responsive {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    
+    .table {
+        margin-bottom: 0;
+    }
+    
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    /* Interview Cards */
+    .interview-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        margin-bottom: 1.5rem;
+    }
+    
+    .interview-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Job Cards */
+    .job-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+    
+    .job-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Scrollable Sections */
+    .scrollable-section {
+        max-height: 400px;
+        overflow-y: auto;
+        padding-right: 10px;
+    }
+    
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 10px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
+    
+    /* Verification Alert */
+    .verification-alert {
+        border-left: 4px solid #ffc107;
+        border-radius: 8px;
+    }
+    
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+        .sidebar {
+            position: static;
+            width: 100%;
+            height: auto;
+            padding: 0;
+        }
+        
+        main {
+            padding-top: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Enhanced Sidebar -->
+        <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+            <div class="position-sticky pt-3">
+                <div class="profile-card">
+                    <img src="{% if student.profile_picture %}{{ student.profile_picture.url }}{% else %}{% static 'images/default-profile.png' %}{% endif %}" 
+                         class="rounded-circle profile-img" alt="Profile">
+                    <h5 class="mt-3 text-white">{{ student.first_name }} {{ student.last_name }}</h5>
+                    <p class="text-muted">{{ student.university }}</p>
+                    
+                    {% if student.student_id_verified %}
+                    <span class="badge bg-success mt-2">
+                        <i class="bi bi-check-circle-fill me-1"></i> Verified
+                    </span>
+                    {% endif %}
+                </div>
+                
+                <ul class="nav flex-column mt-3">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#dashboard" data-scroll>
+                            <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:student_profile' %}">
+                            <i class="bi bi-person me-2"></i> My Profile
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#applications" data-scroll>
+                            <i class="bi bi-briefcase me-2"></i> My Applications
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'jobs:resume_builder' %}">
+                            <i class="bi bi-file-earmark-text me-2"></i> Resume Builder
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'jobs:saved_jobs' %}">
+                            <i class="bi bi-bookmark me-2"></i> Saved Jobs
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#interviews" data-scroll>
+                            <i class="bi bi-calendar-check me-2"></i> Interviews
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'jobs:community' %}">
+                            <i class="bi bi-people me-2"></i> Community
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'jobs:settings' %}">
+                            <i class="bi bi-gear me-2"></i> Settings
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <!-- Dashboard Header -->
+            <div class="dashboard-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h1 class="h3 mb-0"><i class="bi bi-speedometer2 text-primary me-2"></i> Dashboard Overview</h1>
+                    <div>
+                        <button type="button" class="btn btn-sm btn-outline-primary me-2">
+                            <i class="bi bi-share me-1"></i> Share
+                        </button>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                                <i class="bi bi-calendar me-1"></i> This Week
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#">Today</a></li>
+                                <li><a class="dropdown-item" href="#">This Week</a></li>
+                                <li><a class="dropdown-item" href="#">This Month</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#">Custom Range</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Verification Alert -->
+            {% if not student.student_id_verified %}
+            <div class="alert alert-warning verification-alert d-flex align-items-center">
+                <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
+                <div>
+                    <h6 class="alert-heading mb-1">Account Verification Pending</h6>
+                    <p class="mb-0">Please upload your university ID in your profile to get verified and access all features.</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Stats Cards Section -->
+            <div class="row mb-4" id="dashboard">
+                <div class="col-md-3 mb-3">
+                    <div class="stat-card text-white" style="background: linear-gradient(135deg, #4361ee, #3a0ca3);">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title">Applications</h6>
+                                    <h2 class="mb-0">{{ total_applications }}</h2>
+                                    <small class="opacity-75">Total submitted</small>
+                                </div>
+                                <i class="bi bi-briefcase fs-1 opacity-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="stat-card text-white" style="background: linear-gradient(135deg, #4cc9f0, #4895ef);">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title">Interviews</h6>
+                                    <h2 class="mb-0">{{ interviews }}</h2>
+                                    <small class="opacity-75">Upcoming</small>
+                                </div>
+                                <i class="bi bi-calendar-check fs-1 opacity-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="stat-card text-white" style="background: linear-gradient(135deg, #f8961e, #f3722c);">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title">Pending</h6>
+                                    <h2 class="mb-0">{{ pending }}</h2>
+                                    <small class="opacity-75">Under review</small>
+                                </div>
+                                <i class="bi bi-hourglass-split fs-1 opacity-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="stat-card text-white" style="background: linear-gradient(135deg, #f94144, #f3722c);">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title">Rejected</h6>
+                                    <h2 class="mb-0">{{ rejected }}</h2>
+                                    <small class="opacity-75">Not selected</small>
+                                </div>
+                                <i class="bi bi-x-circle fs-1 opacity-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Applications Section -->
+            <div class="section-card" id="applications">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-briefcase me-2"></i> Recent Applications</h5>
+                    <a href="{% url 'jobs:my_applications' %}" class="btn btn-sm btn-outline-primary">
+                        View All <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                <div class="card-body scrollable-section">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Position</th>
+                                    <th>Company</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for application in recent_applications %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ application.job.title }}</strong>
+                                        <div class="small text-muted">{{ application.job.get_job_type_display }}</div>
+                                    </td>
+                                    <td>{{ application.job.employer.company_name }}</td>
+                                    <td>{{ application.applied_date|date:"M d, Y" }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if application.status == 'INTERVIEW' %}success{% elif application.status == 'PENDING' %}warning{% elif application.status == 'REJECTED' %}danger{% else %}primary{% endif %}">
+                                            {{ application.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'jobs:application_detail' application.pk %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">
+                                        <i class="bi bi-inbox fs-1"></i>
+                                        <p class="mt-2 mb-0">No applications yet</p>
+                                        <a href="{% url 'jobs:job_list' %}" class="btn btn-sm btn-primary mt-2">
+                                            Browse Jobs
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upcoming Interviews Section -->
+            <div class="section-card" id="interviews">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-calendar-check me-2"></i> Upcoming Interviews</h5>
+                    <a href="{% url 'jobs:interviews' %}" class="btn btn-sm btn-outline-primary">
+                        View All <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for interview in upcoming_interviews %}
+                        <div class="col-md-6">
+                            <div class="interview-card card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <div>
+                                            <span class="badge bg-{% if interview.interview_type == 'ZOOM' %}primary{% elif interview.interview_type == 'PHONE' %}info{% else %}secondary{% endif %}">
+                                                {{ interview.get_interview_type_display }}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted">Scheduled</small>
+                                        </div>
+                                    </div>
+                                    
+                                    <h5 class="card-title">{{ interview.application.job.title }}</h5>
+                                    <p class="card-text text-muted mb-2">{{ interview.application.job.employer.company_name }}</p>
+                                    
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="bg-light rounded p-2 me-3">
+                                            <i class="bi bi-calendar-date text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted">Date & Time</small>
+                                            <p class="mb-0">{{ interview.interview_date|date:"M d, Y" }} at {{ interview.interview_date|time:"g:i A" }}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    {% if interview.location %}
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="bg-light rounded p-2 me-3">
+                                            <i class="bi bi-geo-alt text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted">Location</small>
+                                            <p class="mb-0">{{ interview.location }}</p>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <div class="d-flex justify-content-end">
+                                        {% if interview.interview_type == 'ZOOM' and interview.details %}
+                                        <a href="{{ interview.details }}" class="btn btn-sm btn-success me-2">
+                                            <i class="bi bi-camera-video me-1"></i> Join
+                                        </a>
+                                        {% else %}
+                                        <a href="{% url 'jobs:interview_detail' interview.pk %}" class="btn btn-sm btn-outline-primary me-2">
+                                            <i class="bi bi-info-circle me-1"></i> Details
+                                        </a>
+                                        {% endif %}
+                                        <a href="{% url 'jobs:reschedule_interview' interview.pk %}" class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-clock me-1"></i> Reschedule
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12 text-center py-4 text-muted">
+                            <i class="bi bi-calendar-x fs-1"></i>
+                            <p class="mt-2 mb-0">No upcoming interviews scheduled</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recommended Jobs Section -->
+            <div class="section-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-star me-2"></i> Recommended For You</h5>
+                    <a href="{% url 'jobs:job_list' %}" class="btn btn-sm btn-outline-primary">
+                        Browse All <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for job in recommended_jobs %}
+                        <div class="col-md-4 mb-4">
+                            <div class="job-card card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <span class="badge bg-{% if job.job_type == 'INT' %}success{% elif job.job_type == 'FT' %}primary{% else %}warning{% endif %}">
+                                            {{ job.get_job_type_display }}
+                                        </span>
+                                        <a href="{% url 'jobs:save_job' job.pk %}" class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-bookmark{% if job in saved_jobs %}-fill{% endif %}"></i>
+                                        </a>
+                                    </div>
+                                    
+                                    <h5 class="card-title">{{ job.title }}</h5>
+                                    <p class="card-text text-muted">{{ job.employer.company_name }}</p>
+                                    
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="bi bi-geo-alt text-muted me-2"></i>
+                                        <small>{{ job.location }}</small>
+                                    </div>
+                                    
+                                    <div class="d-flex align-items-center mb-3">
+                                        <i class="bi bi-currency-dollar text-muted me-2"></i>
+                                        <small>{{ job.salary|default:"Salary not specified" }}</small>
+                                    </div>
+                                    
+                                    <p class="card-text text-muted small">{{ job.description|truncatewords:20 }}</p>
+                                    
+                                    <div class="d-flex justify-content-between align-items-center mt-auto">
+                                        <small class="text-muted">Posted {{ job.posted_date|timesince }} ago</small>
+                                        <a href="{% url 'jobs:job_detail' job.pk %}" class="btn btn-sm btn-primary">
+                                            Apply <i class="bi bi-arrow-right ms-1"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12 text-center py-4 text-muted">
+                            <i class="bi bi-stars fs-1"></i>
+                            <p class="mt-2 mb-3">No job recommendations at this time</p>
+                            <a href="{% url 'jobs:job_list' %}" class="btn btn-primary">
+                                Browse Available Jobs
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Smooth scrolling for sidebar links
+    document.querySelectorAll('[data-scroll]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            const targetElement = document.querySelector(targetId);
+            
+            if (targetElement) {
+                window.scrollTo({
+                    top: targetElement.offsetTop - 20,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+    
+    // Highlight active section in sidebar
+    const sections = document.querySelectorAll('section');
+    const navLinks = document.querySelectorAll('#sidebar .nav-link');
+    
+    window.addEventListener('scroll', function() {
+        let current = '';
+        
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            const sectionHeight = section.clientHeight;
+            
+            if (pageYOffset >= (sectionTop - 300)) {
+                current = section.getAttribute('id');
+            }
+        });
+        
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === `#${current}`) {
+                link.classList.add('active');
+            }
+        });
+    });
+    
+    // Add hover effects to cards
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(card => {
+        card.style.transition = 'transform 0.3s ease, box-shadow 0.3s ease';
+        
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+            this.style.boxShadow = '0 10px 20px rgba(0,0,0,0.1)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = '';
+            this.style.boxShadow = '';
+        });
+    });
+});
+</script>
+{% endblock %}

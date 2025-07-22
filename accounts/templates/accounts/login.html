@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% load static %}
+{% block extra_css %}
+<style>
+    input[type="password"]::-webkit-reveal,
+    input[type="password"]::-webkit-caps-lock-indicator,
+    input[type="password"]::-webkit-contacts-auto-fill-button {
+        display: none !important;
+    }
+    input[type="password"]::-ms-reveal {
+        display: none;
+    }
+    :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3a0ca3;
+    }
+    .auth-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+    .auth-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 1.5rem;
+        text-align: center;
+    }
+    .auth-body {
+        padding: 2rem;
+    }
+    .auth-btn {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border: none;
+        padding: 0.75rem;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+    .auth-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+    }
+    .form-control {
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        border: 1px solid #e0e0e0;
+    }
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.15);
+    }
+    .auth-footer {
+        text-align: center;
+        padding-top: 1.5rem;
+        border-top: 1px solid #f0f0f0;
+        margin-top: 1.5rem;
+    }
+    .auth-link {
+        color: var(--primary-color);
+        font-weight: 500;
+        text-decoration: none;
+    }
+    .auth-link:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="auth-card card">
+                <div class="auth-header card-header">
+                    <h2 class="mb-0">Login</h2>
+                </div>
+                <div class="auth-body card-body">
+                    {% if messages %}
+                        <div class="mb-3">
+                            {% for message in messages %}
+                                <div class="alert alert-{% if message.tags == 'success' %}success{% else %}danger{% endif %} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    {% if form.errors %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    {{ error }}<br>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                                {{ error }}<br>
+                            {% endfor %}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endif %}
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+                            <input type="text" name="{{ form.username.name }}" id="{{ form.username.id_for_label }}" 
+                                   class="form-control {% if form.username.errors %}is-invalid{% endif %}" 
+                                   value="{{ form.username.value|default_if_none:'' }}">
+                            {% if form.username.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.username.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
+                            <div class="input-group">
+                                <input type="password" name="{{ form.password.name }}" id="{{ form.password.id_for_label }}" 
+                                       class="form-control {% if form.password.errors %}is-invalid{% endif %}">
+                                <button class="btn btn-outline-secondary toggle-password" type="button">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            {% if form.password.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.password.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <button type="submit" class="btn auth-btn w-100 text-white mb-3">Login</button>
+                        <div class="auth-footer">
+                            <p>Don't have an account? <a href="{% url 'accounts:student_signup' %}" class="auth-link">Register as Student</a></p>
+                            <p><a href="{% url 'accounts:employer_signup' %}" class="auth-link">Register as Employer</a></p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleButton = document.querySelector('.toggle-password');
+    toggleButton.addEventListener('click', function() {
+        const input = this.parentNode.querySelector('input');
+        const icon = this.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+        }
+    });
+});
+</script>
+{% endblock %}

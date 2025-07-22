@@ -1,0 +1,10 @@
+Hello {{ user.get_full_name }},
+
+Please click the link below to verify your university email address:
+
+{{ verification_url }}
+
+If you didn't request this, please ignore this email.
+
+Best regards,
+The SkillBridge Team

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+   {% load static %}
+
+   {% block title %}{{ portfolio_item.title }} | SkillBridge{% endblock %}
+
+   {% block content %}
+   <div class="container mt-5">
+       <div class="card">
+           <div class="card-header">
+               <h4>{{ portfolio_item.title }}</h4>
+               {% if portfolio_item.is_certificate %}
+               <span class="badge bg-info">Certificate</span>
+               {% endif %}
+           </div>
+           <div class="card-body">
+               {% if portfolio_item.media %}
+               {% if portfolio_item.media_type == 'image' %}
+                   <img src="{{ portfolio_item.media.url }}" class="img-fluid mb-3" alt="{{ portfolio_item.title }}">
+               {% elif portfolio_item.media_type == 'video' %}
+                   <video class="img-fluid mb-3" controls>
+                       <source src="{{ portfolio_item.media.url }}" type="video/mp4">
+                       Your browser does not support the video tag.
+                   </video>
+               {% else %}
+                   <p><a href="{{ portfolio_item.media.url }}" target="_blank">Download File</a></p>
+               {% endif %}
+               {% endif %}
+               <p>{{ portfolio_item.description|linebreaks }}</p>
+               <a href="{% url 'accounts:student_profile' %}" class="btn btn-outline-primary">Back to Profile</a>
+           </div>
+       </div>
+   </div>
+   {% endblock %}

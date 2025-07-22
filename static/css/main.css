@@ -1,0 +1,67 @@
+/* Global Styles */
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+/* Hero section full-width tricks */
+.hero-section {
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+}
+
+.hero-section {
+  position: relative;
+}
+
+.hover-shadow:hover {
+  transform: translateY(-5px);
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.step-card {
+  background: white;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.step-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Add more global styles as needed */
+
+/* Profile pictures in admin */
+.field-admin_thumbnail img {
+  border-radius: 50%;
+  border: 2px solid #eee;
+}
+
+/* Approve button styling */
+.button {
+  background: #4caf50;
+  color: white;
+  padding: 5px 10px;
+  text-decoration: none;
+  border-radius: 3px;
+}
+
+.button:hover {
+  background: #45a049;
+}
+
+/* Improved layout */
+.change-list table thead th {
+  white-space: nowrap;
+}
+
+.change-list table tbody td {
+  vertical-align: middle;
+}

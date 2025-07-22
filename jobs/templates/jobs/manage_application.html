@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Manage Application | SkillBridge{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Manage Application</h2>
+    <div class="card">
+        <div class="card-body">
+            <h5>{{ application.job.title }} - {{ application.student.user.username }}</h5>
+            <p><strong>Applied Date:</strong> {{ application.applied_date|date:"Y-m-d" }}</p>
+            <p><strong>Current Status:</strong> {{ application.get_status_display }}</p>
+            {% if application.cover_letter %}
+            <p><strong>Cover Letter:</strong> {{ application.cover_letter }}</p>
+            {% endif %}
+            {% if application.resume %}
+            <p><strong>Resume:</strong> <a href="{{ application.resume.url }}" target="_blank">Download</a></p>
+            {% endif %}
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="status" class="form-label">Update Status</label>
+                    <select name="status" class="form-select">
+                        {% for value, label in application.STATUS_CHOICES %}
+                        <option value="{{ value }}" {% if application.status == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Update</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

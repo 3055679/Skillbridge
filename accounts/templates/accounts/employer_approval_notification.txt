@@ -1,0 +1,10 @@
+New employer account awaiting approval:
+
+Username: {{ user.username }}
+Full Name: {{ user.get_full_name }}
+Email: {{ profile.email }}
+Company Name: {{ profile.company_name }}
+Phone Number: {{ profile.phone_number }}
+Country: {{ profile.country }}
+
+Please review this account in the admin panel: {{ admin_url }}

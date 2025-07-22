@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Application Detail | SkillBridge{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Application Details</h2>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    {% if application %}
+        <div class="card mb-3">
+            <div class="card-header">
+                Application for {{ application.job.title }}
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">Details</h5>
+                <p class="card-text"><strong>Student:</strong> {{ application.student.user.username }}</p>
+                <p class="card-text"><strong>Job Title:</strong> {{ application.job.title }}</p>
+                <p class="card-text"><strong>Applied Date:</strong> {{ application.applied_date|date:"Y-m-d H:i" }}</p>
+                <p class="card-text"><strong>Status:</strong> {{ application.get_status_display }}</p>
+                {% if application.cover_letter %}
+                    <p class="card-text"><strong>Cover Letter:</strong></p>
+                    <div class="bg-light p-2 rounded">{{ application.cover_letter|linebreaks }}</div>
+                {% endif %}
+                {% if application.resume %}
+                    <p class="card-text"><strong>Resume:</strong> <a href="{{ application.resume.url }}" target="_blank">Download</a></p>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if user.is_employer and application.job.employer.user == user %}
+            <a href="{% url 'jobs:manage_application' application.id %}" class="btn btn-primary">Manage Application</a>
+        {% elif user.is_student and application.student.user == user %}
+            <p class="text-muted">This is your application. Check status updates here.</p>
+        {% endif %}
+    {% else %}
+        <p class="text-danger">Application not found.</p>
+    {% endif %}
+</div>
+{% endblock %}

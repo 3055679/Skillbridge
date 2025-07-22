@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load static crispy_forms_tags %}
+
+{% block title %}Schedule Interview | SkillBridge{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Schedule Interview for {{ application.job.title }}</h2>
+    <form method="POST" class="mt-4">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary">Schedule Interview</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

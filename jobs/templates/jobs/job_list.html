@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Job Listings | SkillBridge{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Available Jobs</h1>
+    
+    {% for job in jobs %}
+    <div class="card mb-3">
+        <div class="card-header">
+            <h3>{{ job.title }}</h3>
+            <p class="text-muted mb-1">{{ job.employer.company_name }} - {{ job.location }}</p>
+            <span class="badge bg-{% if job.job_type == 'INT' %}primary{% else %}success{% endif %}">
+                {{ job.get_job_type_display }}
+            </span>
+        </div>
+        <div class="card-body">
+            <h5>Job Description</h5>
+            <p>{{ job.description }}</p>
+            
+            <h5>Job Type Details</h5>
+            <p class="fst-italic">
+                {% if job.job_type == 'INT' %}
+                    Long-term work experience (typically 3-6 months)
+                {% else %}
+                    Short-term project or task (typically 1 day - 1 month)
+                {% endif %}
+            </p>
+            
+            <h5>Required Skills</h5>
+            <div class="mb-3">
+                {% for skill in job.skills_required.all %}
+                    <span class="badge bg-secondary me-1">{{ skill.name }}</span>
+                {% empty %}
+                    <p>No specific skills required</p>
+                {% endfor %}
+            </div>
+            
+            <p class="text-muted">
+                Posted: {{ job.posted_date|date:"M d, Y" }} | 
+                Expires: {{ job.expires_at|date:"M d, Y" }}
+            </p>
+            
+            {% if user.is_authenticated and user.is_student %}
+                <a href="{% url 'jobs:apply_job' job.id %}" class="btn btn-primary">Apply Now</a>
+            {% elif not user.is_authenticated %}
+                <p>Please <a href="{% url 'accounts:login' %}">log in</a> to apply for this job.</p>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="alert alert-info">
+        No active job listings at this time. Please check back later.
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

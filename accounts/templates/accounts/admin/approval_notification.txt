@@ -1,0 +1,10 @@
+New student registration requires approval:
+
+Name: {{ user.get_full_name }}
+Email: {{ user.email }}
+University: {{ profile.university }}
+Phone Number: {{ profile.phone_number }}
+Country: {{ profile.country }}
+Student ID Document: {% if profile.student_id_document %}{{ profile.student_id_document.url }}{% else %}Not provided{% endif %}
+
+Please review in the admin panel: {{ admin_url }}

@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+{% load static %}
+{% block extra_css %}
+<style>
+    input[type="password"]::-webkit-reveal,
+    input[type="password"]::-webkit-caps-lock-indicator,
+    input[type="password"]::-webkit-contacts-auto-fill-button {
+        display: none !important;
+    }
+    input[type="password"]::-ms-reveal {
+        display: none;
+    }
+    :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3a0ca3;
+    }
+    .auth-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+    .auth-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 1.5rem;
+        text-align: center;
+    }
+    .auth-body {
+        padding: 2rem;
+    }
+    .auth-btn {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border: none;
+        padding: 0.75rem;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+    .auth-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+    }
+    .form-control {
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        border: 1px solid #e0e0e0;
+    }
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.15);
+    }
+    .auth-footer {
+        text-align: center;
+        padding-top: 1.5rem;
+        border-top: 1px solid #f0f0f0;
+        margin-top: 1.5rem;
+    }
+    .auth-link {
+        color: var(--primary-color);
+        font-weight: 500;
+        text-decoration: none;
+    }
+    .auth-link:hover {
+        text-decoration: underline;
+    }
+    .form-check-input:checked {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="auth-card card">
+                <div class="auth-header card-header">
+                    <h2 class="mb-0">Student Registration</h2>
+                </div>
+                <div class="auth-body card-body">
+                    <!-- Single alert message display -->
+                    {% if email_verified %}
+                        <div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+                            Your email has been verified! Please complete your registration below.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% elif messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-3" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% elif form.non_field_errors %}
+                        <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name</label>
+                                <input type="text" name="{{ form.first_name.name }}" id="{{ form.first_name.id_for_label }}" 
+                                       class="form-control {% if form.first_name.errors %}is-invalid{% endif %}" 
+                                       value="{{ form.first_name.value|default_if_none:'' }}" required>
+                                {% if form.first_name.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.first_name.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name</label>
+                                <input type="text" name="{{ form.last_name.name }}" id="{{ form.last_name.id_for_label }}" 
+                                       class="form-control {% if form.last_name.errors %}is-invalid{% endif %}" 
+                                       value="{{ form.last_name.value|default_if_none:'' }}" required>
+                                {% if form.last_name.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.last_name.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.personal_email.id_for_label }}" class="form-label">Personal Email</label>
+                            <input type="email" name="{{ form.personal_email.name }}" id="{{ form.personal_email.id_for_label }}" 
+                                   class="form-control {% if form.personal_email.errors %}is-invalid{% endif %}" 
+                                   value="{{ form.personal_email.value|default_if_none:'' }}" required>
+                            {% if form.personal_email.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.personal_email.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.phone_number.id_for_label }}" class="form-label">Phone Number</label>
+                            <input type="tel" name="{{ form.phone_number.name }}" id="{{ form.phone_number.id_for_label }}" 
+                                   class="form-control {% if form.phone_number.errors %}is-invalid{% endif %}" 
+                                   value="{{ form.phone_number.value|default_if_none:'' }}" required>
+                            <small class="text-muted">Format: +1234567890</small>
+                            {% if form.phone_number.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.phone_number.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.country.id_for_label }}" class="form-label">Country</label>
+                            <input type="text" name="{{ form.country.name }}" id="{{ form.country.id_for_label }}"
+                                   class="form-control {% if form.country.errors %}is-invalid{% endif %}" 
+                                   value="{{ form.country.value|default_if_none:'' }}" required>
+                            {% if form.country.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.country.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.university.id_for_label }}" class="form-label">University</label>
+                            <input type="text" name="{{ form.university.name }}" id="{{ form.university.id_for_label }}"
+                                   class="form-control {% if form.university.errors %}is-invalid{% endif %}" 
+                                   value="{{ form.university.value|default_if_none:'' }}" required>
+                            {% if form.university.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.university.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" name="{{ form.has_university_email.name }}" 
+                                   id="{{ form.has_university_email.id_for_label }}" 
+                                   class="form-check-input" 
+                                   {% if form.has_university_email.value %}checked{% endif %}>
+                            <label class="form-check-label" for="{{ form.has_university_email.id_for_label }}">
+                                I have a university email address
+                            </label>
+                            {% if form.has_university_email.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.has_university_email.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div id="universityEmailField" class="mb-3" style="display: none;">
+                            <label for="{{ form.university_email.id_for_label }}" class="form-label">University Email</label>
+                            <input type="email" name="{{ form.university_email.name }}" id="{{ form.university_email.id_for_label }}" 
+                                   class="form-control {% if form.university_email.errors %}is-invalid{% endif %}" 
+                                   value="{{ form.university_email.value|default_if_none:'' }}"
+                                   {% if email_verified %}disabled{% endif %}>
+                            {% if form.university_email.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.university_email.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div id="studentIdField" class="mb-3">
+                            <label for="{{ form.student_id_document.id_for_label }}" class="form-label">Student ID Document</label>
+                            <input type="file" name="{{ form.student_id_document.name }}" 
+                                   id="{{ form.student_id_document.id_for_label }}" 
+                                   class="form-control {% if form.student_id_document.errors %}is-invalid{% endif %}"
+                                   {% if email_verified %}disabled{% endif %}>
+                            <small class="text-muted">Upload a clear image or PDF of your student ID</small>
+                            {% if form.student_id_document.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.student_id_document.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+                            <input type="text" name="{{ form.username.name }}" id="{{ form.username.id_for_label }}" 
+                                   class="form-control {% if form.username.errors %}is-invalid{% endif %}" 
+                                   value="{{ form.username.value|default_if_none:'' }}" required>
+                            {% if form.username.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.username.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
+                            <div class="input-group">
+                                <input type="password" name="{{ form.password1.name }}" id="{{ form.password1.id_for_label }}" 
+                                       class="form-control {% if form.password1.errors %}is-invalid{% endif %}"
+                                       {% if email_verified %}disabled{% endif %} required>
+                                <button class="btn btn-outline-secondary toggle-password" type="button">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            {% if form.password1.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.password1.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password</label>
+                            <div class="input-group">
+                                <input type="password" name="{{ form.password2.name }}" id="{{ form.password2.id_for_label }}" 
+                                       class="form-control {% if form.password2.errors %}is-invalid{% endif %}"
+                                       {% if email_verified %}disabled{% endif %} required>
+                                <button class="btn btn-outline-secondary toggle-password" type="button">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            {% if form.password2.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.password2.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <button type="submit" class="btn auth-btn w-100 text-white mb-3">Register</button>
+
+                        <div class="auth-footer">
+                            <p>Already have an account? <a href="{% url 'accounts:login' %}" class="auth-link">Login here</a></p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle password visibility
+    const toggleButtons = document.querySelectorAll('.toggle-password');
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const input = this.parentNode.querySelector('input');
+            const icon = this.querySelector('i');
+            if (input.type === 'password' && !input.disabled) {
+                input.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else if (!input.disabled) {
+                input.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        });
+    });
+
+    // Toggle university email and student ID field visibility
+    const hasUniEmailCheckbox = document.getElementById('{{ form.has_university_email.id_for_label }}');
+    const uniEmailField = document.getElementById('universityEmailField');
+    const studentIdField = document.getElementById('studentIdField');
+    
+    function toggleUniEmailField() {
+        uniEmailField.style.display = hasUniEmailCheckbox.checked ? 'block' : 'none';
+        studentIdField.style.display = hasUniEmailCheckbox.checked ? 'none' : 'block';
+    }
+    
+    hasUniEmailCheckbox.addEventListener('change', toggleUniEmailField);
+    toggleUniEmailField(); // Initialize on page load
+});
+</script>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load static %}
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3a0ca3;
+    }
+    .auth-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+    .auth-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 1.5rem;
+        text-align: center;
+    }
+    .auth-body {
+        padding: 2rem;
+    }
+    .auth-btn {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border: none;
+        padding: 0.75rem;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+    .auth-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+    }
+    .auth-link {
+        color: var(--primary-color);
+        font-weight: 500;
+        text-decoration: none;
+    }
+    .auth-link:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="auth-card card">
+                <div class="auth-header card-header">
+                    <h2 class="mb-0">Account Under Review</h2>
+                </div>
+                <div class="auth-body card-body">
+                    {% if messages %}
+                        <div class="mb-3">
+                            {% for message in messages %}
+                                <div class="alert alert-{% if message.tags == 'success' %}success{% else %}danger{% endif %} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p>Your account is currently under review. You will receive an email notification once it has been approved.</p>
+                    <p>Please check your email (including spam/junk folders) for further updates.</p>
+                    <div class="text-center">
+                        <a href="{% url 'accounts:login' %}" class="btn auth-btn text-white">Go to Login</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
