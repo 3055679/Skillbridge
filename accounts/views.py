@@ -8,6 +8,7 @@ from django.core.mail import send_mail, mail_admins
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.conf import settings
+from django.db import transaction
 import uuid
 import logging
 from .forms import StudentSignUpForm, EmployerSignUpForm, LoginForm, UserUpdateForm, StudentProfileForm, EmployerProfileForm, EducationForm, ExperienceForm, PortfolioForm, EducationFormSet, ExperienceFormSet, PortfolioFormSet, CustomPasswordChangeForm
@@ -17,7 +18,6 @@ logger = logging.getLogger(__name__)
 
 @csrf_protect
 def student_signup(request):
-    # Existing authentication check
     if request.user.is_authenticated and hasattr(request.user, 'userprofile') and request.user.userprofile.email_verified:
         messages.info(request, "You are already registered and verified. Please login.")
         return redirect('accounts:login')
@@ -31,64 +31,66 @@ def student_signup(request):
             email = university_email if university_email else form.cleaned_data['personal_email']
             username = form.cleaned_data['username']
             
-            # Create new user
-            user = User.objects.create_user(
-                username=username,
-                email=email,
-                password=form.cleaned_data['password1'],
-                first_name=form.cleaned_data['first_name'],
-                last_name=form.cleaned_data['last_name'],
-                is_active=False,  # Inactive until verified
-                is_student=True,
-                is_verified=False,
-            )
-            
-            # Create user profile for verification
-            profile, created = UserProfile.objects.get_or_create(user=user)
-            
-            # Create student profile
-            StudentProfile.objects.create(
-                user=user,
-                university=form.cleaned_data['university'],
-                phone_number=form.cleaned_data['phone_number'],
-                country=form.cleaned_data['country'],
-                student_id_document=student_id_document,
-                student_id_verified=bool(university_email),
-            )
-            
-            if has_university_email and university_email:
-                # Email verification path
-                verification_token = uuid.uuid4()
-                profile.email_verification_token = verification_token
-                profile.save()
-                
-                try:
-                    verification_url = request.build_absolute_uri(
-                        reverse('accounts:verify_email', kwargs={'token': str(verification_token)})
+            try:
+                with transaction.atomic():
+                    user = User(
+                        username=username,
+                        email=email,
+                        first_name=form.cleaned_data['first_name'],
+                        last_name=form.cleaned_data['last_name'],
+                        is_active=False,
+                        is_student=True,
+                        is_verified=False,
                     )
-                    send_mail(
-                        'Verify Your Email - SkillBridge',
-                        render_to_string('accounts/email_verification.txt', {
-                            'user': user,
-                            'verification_url': verification_url
-                        }),
-                        settings.DEFAULT_FROM_EMAIL,
-                        [user.email],
-                        fail_silently=False,
+                    user.set_password(form.cleaned_data['password1'])
+                    
+                    profile = UserProfile(user=user)
+                    
+                    student_profile = StudentProfile(
+                        user=user,
+                        university=form.cleaned_data['university'],
+                        phone_number=form.cleaned_data['phone_number'],
+                        country=form.cleaned_data['country'],
+                        student_id_document=student_id_document,
+                        student_id_verified=bool(university_email),
                     )
-                    messages.success(request, "Verification email sent. Please check your inbox.")
-                    return redirect('accounts:email_verification_sent')
-                except Exception as e:
-                    logger.error(f"Failed to send verification email to {user.email}: {str(e)}")
-                    messages.error(request, "Failed to send verification email. Please try again.")
-                    return render(request, 'accounts/student_signup.html', {'form': form})
-            else:
-                # Document upload path
-                notify_admin_for_approval(user)
-                messages.success(request, "Your account is under review. You will receive an email once verified.")
-                return redirect('accounts:pending_approval')
+                    
+                    if has_university_email and university_email:
+                        verification_token = uuid.uuid4()
+                        profile.email_verification_token = verification_token
+                        
+                        verification_url = request.build_absolute_uri(
+                            reverse('accounts:verify_email', kwargs={'token': str(verification_token)})
+                        )
+                        send_mail(
+                            'Verify Your Email - SkillBridge',
+                            render_to_string('accounts/email_verification.txt', {
+                                'user': user,
+                                'verification_url': verification_url
+                            }),
+                            settings.DEFAULT_FROM_EMAIL,
+                            [user.email],
+                            fail_silently=False,
+                        )
+                        
+                        user.save()
+                        profile.save()
+                        student_profile.save()
+                        
+                        messages.success(request, "Verification email sent. Please check your inbox.")
+                        return redirect('accounts:email_verification_sent')
+                    else:
+                        user.save()
+                        profile.save()
+                        student_profile.save()
+                        notify_admin_for_approval(user)
+                        messages.success(request, "Your account is under review. You will receive an email once verified.")
+                        return redirect('accounts:pending_approval')
+            except Exception as e:
+                logger.error(f"Failed to complete student registration for {email}: {str(e)}")
+                messages.error(request, "Registration failed. Please try again.")
+                return render(request, 'accounts/student_signup.html', {'form': form})
         else:
-            # Only non-field errors are added to messages to avoid duplication
             if form.non_field_errors():
                 for error in form.non_field_errors():
                     messages.error(request, error)
@@ -102,20 +104,20 @@ def verify_email(request, token):
         profile = UserProfile.objects.get(email_verification_token=token)
         user = profile.user
         
-        # Mark as verified
         profile.email_verified = True
         profile.email_verification_token = None
         profile.save()
         
-        # Activate user and mark as verified
         user.is_active = True
         user.is_verified = True
         user.save()
         
-        # Update student profile
         if hasattr(user, 'studentprofile'):
             user.studentprofile.student_id_verified = True
             user.studentprofile.save()
+        elif hasattr(user, 'employerprofile'):
+            user.employerprofile.is_approved = True
+            user.employerprofile.save()
         
         messages.success(request, "Your email is verified. Please login here.")
         return redirect('accounts:login')
@@ -131,12 +133,13 @@ def email_verification_sent(request):
 
 @login_required(login_url='accounts:login')
 def pending_approval(request):
-    if not hasattr(request.user, 'studentprofile'):
+    if not (hasattr(request.user, 'studentprofile') or hasattr(request.user, 'employerprofile')):
         return redirect('accounts:home')
     
-    student_profile = request.user.studentprofile
-    
-    if student_profile.student_id_verified:
+    if hasattr(request.user, 'studentprofile') and request.user.studentprofile.student_id_verified:
+        messages.success(request, "Your account has been approved. Please login.")
+        return redirect('accounts:login')
+    elif hasattr(request.user, 'employerprofile') and request.user.employerprofile.is_approved:
         messages.success(request, "Your account has been approved. Please login.")
         return redirect('accounts:login')
     
@@ -148,6 +151,23 @@ def notify_admin_for_approval(user):
     message = render_to_string('accounts/admin/approval_notification.txt', {
         'user': user,
         'profile': student_profile,
+        'admin_url': settings.ADMIN_URL
+    })
+    try:
+        mail_admins(
+            subject=subject,
+            message=message,
+            fail_silently=False
+        )
+    except Exception as e:
+        logger.error(f"Failed to send admin notification for {user.email}: {str(e)}")
+
+def notify_admin_for_employer_approval(user):
+    employer_profile = user.employerprofile
+    subject = f"Employer Approval Required: {user.get_full_name()}"
+    message = render_to_string('accounts/admin/employer_approval_notification.txt', {
+        'user': user,
+        'profile': employer_profile,
         'admin_url': settings.ADMIN_URL
     })
     try:
@@ -196,23 +216,6 @@ def user_logout(request):
     messages.success(request, 'You have been logged out successfully.')
     return redirect('accounts:home')
 
-def notify_admin_for_employer_approval(user):
-    employer_profile = user.employerprofile
-    subject = f"Employer Approval Required: {user.get_full_name()}"
-    message = render_to_string('accounts/admin/employer_approval_notification.txt', {
-        'user': user,
-        'profile': employer_profile,
-        'admin_url': settings.ADMIN_URL
-    })
-    try:
-        mail_admins(
-            subject=subject,
-            message=message,
-            fail_silently=False
-        )
-    except Exception as e:
-        logger.error(f"Failed to send admin notification for {user.email}: {str(e)}")
-
 @csrf_protect
 def employer_signup(request):
     if request.user.is_authenticated and hasattr(request.user, 'userprofile') and request.user.userprofile.email_verified:
@@ -223,44 +226,51 @@ def employer_signup(request):
         form = EmployerSignUpForm(request.POST)
         if form.is_valid():
             email = form.cleaned_data['email']
-            user = form.save(commit=False)
-            user.is_employer = True
-            user.is_active = False
-            user.save()
-            
-            employer_profile = EmployerProfile(
-                user=user,
-                company_name=form.cleaned_data['company_name'],
-                email=form.cleaned_data['email'],
-                phone_number=form.cleaned_data['phone_number'],
-                country=form.cleaned_data['country'],
-            )
-            employer_profile.save()
-            
-            profile, created = UserProfile.objects.get_or_create(user=user)
-            verification_token = uuid.uuid4()
-            profile.email_verification_token = verification_token
-            profile.save()
-            
             try:
-                verification_url = request.build_absolute_uri(
-                    reverse('accounts:verify_email', kwargs={'token': str(verification_token)})
-                )
-                send_mail(
-                    'Verify Your Email - SkillBridge',
-                    render_to_string('accounts/email_verification.txt', {
-                        'user': user,
-                        'verification_url': verification_url
-                    }),
-                    settings.DEFAULT_FROM_EMAIL,
-                    [user.email],
-                    fail_silently=False,
-                )
-                messages.success(request, "Verification email sent. Please check your inbox.")
-                return redirect('accounts:email_verification_sent')
+                with transaction.atomic():
+                    user = User(
+                        username=form.cleaned_data['username'],
+                        email=email,
+                        is_employer=True,
+                        is_active=False,
+                    )
+                    user.set_password(form.cleaned_data['password1'])
+                    
+                    employer_profile = EmployerProfile(
+                        user=user,
+                        company_name=form.cleaned_data['company_name'],
+                        email=email,
+                        phone_number=form.cleaned_data['phone_number'],
+                        country=form.cleaned_data['country'],
+                    )
+                    
+                    profile = UserProfile(user=user)
+                    verification_token = uuid.uuid4()
+                    profile.email_verification_token = verification_token
+                    
+                    verification_url = request.build_absolute_uri(
+                        reverse('accounts:verify_email', kwargs={'token': str(verification_token)})
+                    )
+                    send_mail(
+                        'Verify Your Email - SkillBridge',
+                        render_to_string('accounts/email_verification.txt', {
+                            'user': user,
+                            'verification_url': verification_url
+                        }),
+                        settings.DEFAULT_FROM_EMAIL,
+                        [user.email],
+                        fail_silently=False,
+                    )
+                    
+                    user.save()
+                    employer_profile.save()
+                    profile.save()
+                    
+                    messages.success(request, "Verification email sent. Please check your inbox.")
+                    return redirect('accounts:email_verification_sent')
             except Exception as e:
-                logger.error(f"Failed to send verification email to {user.email}: {str(e)}")
-                messages.error(request, "Failed to send verification email. Please try again.")
+                logger.error(f"Failed to complete employer registration for {email}: {str(e)}")
+                messages.error(request, "Registration failed. Please try again.")
                 return render(request, 'accounts/employer_signup.html', {'form': form})
         else:
             if form.non_field_errors():

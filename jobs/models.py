@@ -1,12 +1,16 @@
 from django.db import models
 from accounts.models import StudentProfile, EmployerProfile
 from django.utils import timezone
-from datetime import timedelta
 
 class Job(models.Model):
     JOB_TYPE_CHOICES = [
         ('INT', 'Internship'),
         ('GIG', 'Gig'),
+    ]
+    
+    INTERVIEW_TYPE_CHOICES = [
+        ('DIGITAL', 'Digital'),
+        ('FACE_TO_FACE', 'Face-to-Face'),
     ]
     
     INTERNSHIP_DESCRIPTION = "Long-term work experience (typically 3-6 months)"
@@ -21,15 +25,28 @@ class Job(models.Model):
     salary = models.CharField(max_length=100, blank=True)
     posted_date = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
-    expires_at = models.DateTimeField(default=timezone.now() + timedelta(days=30))
+    application_deadline = models.DateTimeField(null=True, blank=True, help_text="Deadline for applications")
+    max_applications = models.PositiveIntegerField(null=True, blank=True, help_text="Maximum number of applications allowed")
+    interview_type = models.CharField(max_length=20, choices=INTERVIEW_TYPE_CHOICES, default='DIGITAL')
+    location_address = models.CharField(max_length=255, null=True, blank=True, help_text="Physical address for Face-to-Face interviews")
 
     def __str__(self):
         return f"{self.title} at {self.employer.company_name}"
 
-    def save(self, *args, **kwargs):
-        if not self.expires_at:
-            self.expires_at = timezone.now() + timedelta(days=30)
-        super().save(*args, **kwargs)
+    def is_accepting_applications(self):
+        if not self.is_active:
+            return False
+        if self.application_deadline and self.application_deadline < timezone.now():
+            self.is_active = False
+            self.save()
+            return False
+        if self.max_applications:
+            current_applications = self.applications.count()
+            if current_applications >= self.max_applications:
+                self.is_active = False
+                self.save()
+                return False
+        return True
 
     class Meta:
         indexes = [

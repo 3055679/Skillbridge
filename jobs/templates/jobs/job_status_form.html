@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Update Job Status | SkillBridge{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2>Update Status for {{ job.title }}</h2>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="is_active" class="form-label">Job Status</label>
+                    <select name="is_active" id="is_active" class="form-control">
+                        <option value="True" {% if job.is_active %}selected{% endif %}>Active</option>
+                        <option value="False" {% if not job.is_active %}selected{% endif %}>Closed</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Update Status</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

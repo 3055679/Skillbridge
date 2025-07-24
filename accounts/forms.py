@@ -65,6 +65,27 @@ class StudentSignUpForm(UserCreationForm):
         
         return cleaned_data
 
+# class EmployerSignUpForm(UserCreationForm):
+#     company_name = forms.CharField(max_length=200, required=True)
+#     email = forms.EmailField(required=True)
+#     phone_number = forms.CharField(
+#         max_length=17,
+#         required=True,
+#         validators=[RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Phone number must be entered in the format: '+999999999'.")]
+#     )
+#     country = forms.CharField(max_length=100, required=True)
+
+#     class Meta:
+#         model = User
+#         fields = ('username', 'email', 'phone_number', 'country', 'company_name', 'password1', 'password2')
+
+#     def clean(self):
+#         cleaned_data = super().clean()
+#         email = cleaned_data.get('email')
+#         if email and User.objects.filter(email=email).exists():
+#             raise ValidationError("This email is already registered. Please use a different email or log in.")
+#         return cleaned_data
+
 class EmployerSignUpForm(UserCreationForm):
     company_name = forms.CharField(max_length=200, required=True)
     email = forms.EmailField(required=True)
@@ -82,8 +103,11 @@ class EmployerSignUpForm(UserCreationForm):
     def clean(self):
         cleaned_data = super().clean()
         email = cleaned_data.get('email')
-        if email and User.objects.filter(email=email).exists():
-            raise ValidationError("This email is already registered. Please use a different email or log in.")
+        if email:
+            if User.objects.filter(email=email).exists():
+                raise ValidationError("This email is already registered. Please use a different email or log in.")
+            if EmployerProfile.objects.filter(email=email).exists():
+                raise ValidationError("This email is already registered with an employer profile. Please use a different email.")
         return cleaned_data
 
 class LoginForm(forms.Form):

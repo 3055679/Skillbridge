@@ -44,6 +44,24 @@
                     </div>
                 </div>
                 
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        {{ form.max_applications|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.application_deadline|as_crispy_field }}
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        {{ form.interview_type|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6" id="location_field" {% if form.interview_type.value != 'FACE_TO_FACE' %}style="display: none;"{% endif %}>
+                        {{ form.location_address|as_crispy_field }}
+                    </div>
+                </div>
+                
                 <div class="d-grid gap-2">
                     <button type="submit" class="btn btn-primary btn-lg">
                         <i class="bi bi-send"></i> Post Job
@@ -53,4 +71,16 @@
         </div>
     </div>
 </div>
+
+<script>
+document.getElementById('id_interview_type').addEventListener('change', function() {
+    var locationField = document.getElementById('location_field');
+    if (this.value === 'FACE_TO_FACE') {
+        locationField.style.display = 'block';
+    } else {
+        locationField.style.display = 'none';
+        document.getElementById('id_location_address').value = '';
+    }
+});
+</script>
 {% endblock %}

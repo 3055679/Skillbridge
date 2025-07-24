@@ -38,20 +38,7 @@
                 </ul>
                 <ul class="navbar-nav">
                     {% if user.is_authenticated %}
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                <i class="bi bi-person-circle"></i> Profile
-                            </a>
-                            <ul class="dropdown-menu">
-                                {% if user.is_student %}
-                                    <li><a class="dropdown-item" href="{% url 'accounts:student_profile' %}">My Profile</a></li>
-                                {% elif user.is_employer %}
-                                    <li><a class="dropdown-item" href="{% url 'accounts:employer_profile' %}">Company Profile</a></li>
-                                {% endif %}
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'accounts:logout' %}">Logout</a></li>
-                            </ul>
-                        </li>
+                        
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                                 {% if user.is_student %}

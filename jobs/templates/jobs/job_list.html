@@ -1,57 +1,210 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Job Listings | SkillBridge{% endblock %}
 
-{% block content %}
-<div class="container mt-4">
-    <h1 class="mb-4">Available Jobs</h1>
+{% block extra_css %}
+<style>
+    .job-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+    }
     
-    {% for job in jobs %}
-    <div class="card mb-3">
-        <div class="card-header">
-            <h3>{{ job.title }}</h3>
-            <p class="text-muted mb-1">{{ job.employer.company_name }} - {{ job.location }}</p>
-            <span class="badge bg-{% if job.job_type == 'INT' %}primary{% else %}success{% endif %}">
-                {{ job.get_job_type_display }}
-            </span>
-        </div>
-        <div class="card-body">
-            <h5>Job Description</h5>
-            <p>{{ job.description }}</p>
-            
-            <h5>Job Type Details</h5>
-            <p class="fst-italic">
-                {% if job.job_type == 'INT' %}
-                    Long-term work experience (typically 3-6 months)
-                {% else %}
-                    Short-term project or task (typically 1 day - 1 month)
-                {% endif %}
-            </p>
-            
-            <h5>Required Skills</h5>
-            <div class="mb-3">
-                {% for skill in job.skills_required.all %}
-                    <span class="badge bg-secondary me-1">{{ skill.name }}</span>
-                {% empty %}
-                    <p>No specific skills required</p>
-                {% endfor %}
+    .job-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    }
+    
+    .job-header {
+        background: linear-gradient(135deg, #4361ee, #3a0ca3);
+        color: white;
+        padding: 1.25rem 1.5rem;
+    }
+    
+    .job-title {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+    
+    .company-name {
+        font-size: 0.95rem;
+        opacity: 0.9;
+    }
+    
+    .job-badge {
+        font-size: 0.8rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 50px;
+    }
+    
+    .job-body {
+        padding: 1.5rem;
+    }
+    
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #3a0ca3;
+        margin: 1rem 0 0.5rem;
+        border-bottom: 1px solid #f0f0f0;
+        padding-bottom: 0.5rem;
+    }
+    
+    .skill-badge {
+        background-color: #e9ecef;
+        color: #495057;
+        padding: 0.35rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+        display: inline-block;
+        transition: all 0.2s;
+    }
+    
+    .skill-badge:hover {
+        background-color: #dee2e6;
+        transform: scale(1.05);
+    }
+    
+    .job-meta {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid #f0f0f0;
+    }
+    
+    .apply-btn {
+        background: linear-gradient(135deg, #4361ee, #3a0ca3);
+        border: none;
+        padding: 0.5rem 1.5rem;
+        font-weight: 500;
+        transition: all 0.3s;
+        margin-top: 1rem;
+    }
+    
+    .apply-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+    }
+    
+    .no-jobs {
+        background-color: #f8f9fa;
+        border-radius: 12px;
+        padding: 2rem;
+        text-align: center;
+        animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .job-card {
+        animation: fadeIn 0.5s ease forwards;
+        opacity: 0;
+    }
+    
+    .job-card:nth-child(1) { animation-delay: 0.1s; }
+    .job-card:nth-child(2) { animation-delay: 0.2s; }
+    .job-card:nth-child(3) { animation-delay: 0.3s; }
+    .job-card:nth-child(4) { animation-delay: 0.4s; }
+    .job-card:nth-child(5) { animation-delay: 0.5s; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold mb-3">Available Job Opportunities</h1>
+        <p class="lead text-muted">Browse through our latest job listings and find your perfect match</p>
+    </div>
+    
+    <div class="row">
+        {% for job in jobs %}
+        <div class="col-lg-8 mx-auto">
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h3 class="job-title">{{ job.title }}</h3>
+                            <p class="company-name mb-2">{{ job.employer.company_name }} • {{ job.location }}</p>
+                        </div>
+                        <span class="job-badge bg-{% if job.job_type == 'INT' %}primary{% else %}success{% endif %}">
+                            {{ job.get_job_type_display }}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="job-body">
+                    <h5 class="section-title">Job Description</h5>
+                    <p class="mb-4">{{ job.description }}</p>
+                    
+                    <h5 class="section-title">Job Type Details</h5>
+                    <p class="fst-italic mb-4">
+                        {% if job.job_type == 'INT' %}
+                            <i class="bi bi-calendar-range me-2"></i> {{ job.INTERNSHIP_DESCRIPTION }}
+                        {% else %}
+                            <i class="bi bi-clock-history me-2"></i> {{ job.GIG_DESCRIPTION }}
+                        {% endif %}
+                    </p>
+                    
+                    <h5 class="section-title">Interview Type</h5>
+                    <p class="mb-4">{{ job.get_interview_type_display }}</p>
+                    
+                    <h5 class="section-title">Required Skills</h5>
+                    <div class="mb-4">
+                        {% for skill in job.skills_required.all %}
+                            <span class="skill-badge">
+                                <i class="bi bi-tag-fill me-1"></i>{{ skill.name }}
+                            </span>
+                        {% empty %}
+                            <p class="text-muted">No specific skills required</p>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center job-meta">
+                        <div>
+                            <span class="me-3"><i class="bi bi-calendar-event me-1"></i> Posted: {{ job.posted_date|date:"M d, Y" }}</span>
+                            <span><i class="bi bi-calendar-x me-1"></i> Deadline: {{ job.application_deadline|date:"M d, Y"|default:"N/A" }}</span>
+                        </div>
+                        
+                        {% if job.is_accepting_applications %}
+                            {% if user.is_authenticated and user.is_student %}
+                                <a href="{% url 'jobs:apply_job' job.id %}" class="btn apply-btn">
+                                    <i class="bi bi-send-fill me-2"></i>Apply Now
+                                </a>
+                            {% elif not user.is_authenticated %}
+                                <a href="{% url 'accounts:login' %}?next={% url 'jobs:job_list' %}" class="btn apply-btn">
+                                    <i class="bi bi-box-arrow-in-right me-2"></i>Log In to Apply
+                                </a>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-danger">Closed</span>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
-            
-            <p class="text-muted">
-                Posted: {{ job.posted_date|date:"M d, Y" }} | 
-                Expires: {{ job.expires_at|date:"M d, Y" }}
-            </p>
-            
-            {% if user.is_authenticated and user.is_student %}
-                <a href="{% url 'jobs:apply_job' job.id %}" class="btn btn-primary">Apply Now</a>
-            {% elif not user.is_authenticated %}
-                <p>Please <a href="{% url 'accounts:login' %}">log in</a> to apply for this job.</p>
-            {% endif %}
         </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="no-jobs">
+                <i class="bi bi-briefcase display-1 text-muted mb-4"></i>
+                <h3 class="mb-3">No Active Job Listings</h3>
+                <p class="lead text-muted mb-4">We currently don't have any active job listings. Please check back later for new opportunities.</p>
+                {% if user.is_authenticated and user.is_student %}
+                    <a href="{% url 'jobs:job_list' %}" class="btn btn-primary">
+                        <i class="bi bi-arrow-repeat me-2"></i>Refresh Listings
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
     </div>
-    {% empty %}
-    <div class="alert alert-info">
-        No active job listings at this time. Please check back later.
-    </div>
-    {% endfor %}
 </div>
 {% endblock %}

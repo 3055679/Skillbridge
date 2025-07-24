@@ -4,8 +4,9 @@ from django.views.decorators.csrf import csrf_protect
 from django.contrib import messages
 from django.utils import timezone
 from accounts.models import StudentProfile, EmployerProfile
-from jobs.models import Job, Application, Interview
-from jobs.forms import ApplicationForm, JobForm, InterviewForm
+from .models import Job, Application, Interview
+from .forms import ApplicationForm, JobForm, InterviewForm
+
 @csrf_protect
 @login_required
 def student_dashboard(request):
@@ -28,11 +29,10 @@ def student_dashboard(request):
         interview_date__gte=timezone.now()
     ).order_by('interview_date')[:2]
     
-    # student_skills = student.skills.all()
     recommended_jobs = Job.objects.filter(
         is_active=True,
-        expires_at__gt=timezone.now()
-    ).order_by('-posted_date')[:3]  # Just show newest active jobs
+        application_deadline__gt=timezone.now()
+    ).order_by('-posted_date')[:3]
     
     context = {
         'student': student,
@@ -45,6 +45,7 @@ def student_dashboard(request):
         'recommended_jobs': recommended_jobs,
     }
     return render(request, 'jobs/student_dashboard.html', context)
+
 @csrf_protect
 @login_required
 def my_applications(request):
@@ -61,10 +62,15 @@ def my_applications(request):
         'applications': applications,
     }
     return render(request, 'jobs/my_applications.html', context)
+
 @csrf_protect
 @login_required
 def apply_job(request, job_id):
     job = get_object_or_404(Job, id=job_id, is_active=True)
+    if not job.is_accepting_applications():
+        messages.error(request, "This job is closed and no longer accepting applications.")
+        return redirect('jobs:job_list')
+    
     profile = get_object_or_404(StudentProfile, user=request.user)
     
     # Check mandatory fields
@@ -103,6 +109,7 @@ def apply_job(request, job_id):
         form = ApplicationForm()
     
     return render(request, 'jobs/apply_job.html', {'form': form, 'job': job})
+
 @csrf_protect
 @login_required
 def employer_dashboard(request):
@@ -112,7 +119,7 @@ def employer_dashboard(request):
         messages.error(request, 'Please complete your employer profile.')
         return redirect('accounts:employer_profile')
     
-    jobs = Job.objects.filter(employer=employer, is_active=True)
+    jobs = Job.objects.filter(employer=employer)
     applications = Application.objects.filter(job__employer=employer)
     
     context = {
@@ -121,6 +128,7 @@ def employer_dashboard(request):
         'applications': applications,
     }
     return render(request, 'jobs/employer_dashboard.html', context)
+
 @csrf_protect
 @login_required
 def post_job(request):
@@ -147,6 +155,19 @@ def post_job(request):
 
 @csrf_protect
 @login_required
+def job_status_update(request, pk):
+    job = get_object_or_404(Job, pk=pk, employer__user=request.user)
+    if request.method == 'POST':
+        is_active = request.POST.get('is_active') == 'True'
+        job.is_active = is_active
+        job.save()
+        messages.success(request, f"Job status updated to {'Active' if is_active else 'Closed'}.")
+        return redirect('jobs:employer_dashboard')
+    
+    return render(request, 'jobs/job_status_form.html', {'job': job})
+
+@csrf_protect
+@login_required
 def manage_application(request, application_id):
     application = get_object_or_404(Application, pk=application_id, job__employer__user=request.user)
     if request.method == 'POST':
@@ -158,6 +179,7 @@ def manage_application(request, application_id):
             return redirect('jobs:employer_dashboard')
     
     return render(request, 'jobs/manage_application.html', {'application': application})
+
 @csrf_protect
 @login_required
 def schedule_interview(request, application_id):
@@ -176,9 +198,7 @@ def schedule_interview(request, application_id):
         form = InterviewForm()
     
     return render(request, 'jobs/schedule_interview.html', {'form': form, 'application': application})
-# jobs/views.py
-# def job_list(request):
-#     return render(request, 'jobs/job_list.html', {})
+
 def job_list(request):
     jobs = Job.objects.filter(is_active=True).order_by('-posted_date')
     context = {
@@ -186,19 +206,18 @@ def job_list(request):
     }
     return render(request, 'jobs/job_list.html', context)
 
-# def job_detail(request, job_id):
-#     job = get_object_or_404(Job, id=job_id, is_active=True)
-#     return render(request, 'jobs/job_detail.html', {'job': job})
-
-def job_detail(request, pk):  # Changed from job_id to pk
-    job = get_object_or_404(Job, id=pk, is_active=True)  # Use pk instead of job_id
-    return render(request, 'jobs/job_detail.html', {'job': job})
+def job_detail(request, pk):
+    job = get_object_or_404(Job, id=pk)
+    is_closed = not job.is_accepting_applications()
+    return render(request, 'jobs/job_detail.html', {
+        'job': job,
+        'is_closed': is_closed,
+    })
 
 @csrf_protect
 @login_required
 def application_detail(request, application_id):
     application = get_object_or_404(Application, pk=application_id)
-       # Restrict access based on user role
     if request.user.is_student and application.student.user != request.user:
         messages.error(request, "You can only view your own applications.")
         return redirect('jobs:student_dashboard')

@@ -172,6 +172,8 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 ADMIN_URL='/admin/'
 
+# GOOGLE_MAPS_API_KEY = 'YOUR_GOOGLE_MAPS_API_KEY'  # Replace with your actual API key
+
 # Logging configuration
 LOGGING = {
     'version': 1,
