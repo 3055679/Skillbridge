@@ -1,0 +1,305 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Interviews | SkillBridge{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3f37c9;
+        --accent-color: #4895ef;
+        --light-bg: #f8f9fa;
+        --dark-bg: #212529;
+    }
+
+    .sidebar {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 100;
+        padding: 48px 0 0;
+        background: linear-gradient(135deg, var(--dark-bg), #2b2d42);
+        box-shadow: 2px 0 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s;
+    }
+
+    .sidebar .nav-link {
+        color: rgba(255, 255, 255, 0.8);
+        padding: 0.75rem 1.5rem;
+        margin: 0.25rem 1rem;
+        border-radius: 8px;
+        transition: all 0.3s;
+    }
+
+    .sidebar .nav-link.active {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        font-weight: 500;
+    }
+
+    .sidebar .nav-link:hover:not(.active) {
+        background: rgba(255, 255, 255, 0.05);
+        color: white;
+    }
+
+    .sidebar .nav-link i {
+        width: 24px;
+        text-align: center;
+    }
+
+    .profile-card {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 1rem;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .profile-img {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border: 3px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    main {
+        padding-top: 1.5rem;
+        background-color: var(--light-bg);
+        min-height: 100vh;
+    }
+
+    .section-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+        transition: all 0.3s ease;
+    }
+
+    .section-card:hover {
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .section-card .card-header {
+        background: white;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        border-radius: 12px 12px 0 0 !important;
+        padding: 1.25rem 1.5rem;
+    }
+
+    .interview-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        margin-bottom: 1.5rem;
+    }
+
+    .interview-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .table-responsive {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        color: #495057;
+    }
+
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
+
+    @media (max-width: 768px) {
+        .sidebar {
+            position: static;
+            width: 100%;
+            height: auto;
+            padding: 0;
+        }
+
+        main {
+            padding-top: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+            <div class="position-sticky pt-3">
+                <div class="profile-card">
+                    <img src="{% if student.profile_picture %}{{ student.profile_picture.url }}{% else %}{% static 'images/default-profile.png' %}{% endif %}" 
+                         class="rounded-circle profile-img" alt="Profile">
+                    <h5 class="mt-3 text-white">{{ student.user.first_name }} {{ student.user.last_name }}</h5>
+                    <p class="text-muted">{{ student.university }}</p>
+                    {% if student.student_id_verified %}
+                    <span class="badge bg-success mt-2">
+                        <i class="bi bi-check-circle-fill me-1"></i> Verified
+                    </span>
+                    {% endif %}
+                </div>
+                
+                <ul class="nav flex-column mt-3">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'jobs:student_dashboard' %}">
+                            <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:student_profile' %}">
+                            <i class="bi bi-person me-2"></i> My Profile
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'jobs:my_applications' %}">
+                            <i class="bi bi-briefcase me-2"></i> My Applications
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'jobs:resume_builder' %}">
+                            <i class="bi bi-file-earmark-text me-2"></i> Resume Builder
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'jobs:saved_jobs' %}">
+                            <i class="bi bi-bookmark me-2"></i> Saved Jobs
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{% url 'jobs:interviews' %}">
+                            <i class="bi bi-calendar-check me-2"></i> Interviews
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'jobs:community' %}">
+                            <i class="bi bi-people me-2"></i> Community
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'jobs:settings' %}">
+                            <i class="bi bi-gear me-2"></i> Settings
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="section-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-calendar-check me-2"></i> My Interviews</h5>
+                    <a href="{% url 'jobs:student_dashboard' %}" class="btn btn-sm btn-outline-primary">
+                        Back to Dashboard <i class="bi bi-arrow-left ms-1"></i>
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if interviews %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Position</th>
+                                    <th>Company</th>
+                                    <th>Date & Time</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for interview in interviews %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ interview.application.job.title }}</strong>
+                                        <div class="small text-muted">{{ interview.application.job.get_job_type_display }}</div>
+                                    </td>
+                                    <td>{{ interview.application.job.employer.company_name }}</td>
+                                    <td>{{ interview.interview_date|date:"M d, Y g:i A" }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if interview.interview_type == 'ZOOM' %}primary{% elif interview.interview_type == 'PHONE' %}info{% else %}secondary{% endif %}">
+                                            {{ interview.get_interview_type_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if interview.status == 'SCHEDULED' %}success{% else %}danger{% endif %}">
+                                            {{ interview.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if interview.status == 'SCHEDULED' %}
+                                            {% if interview.interview_type == 'ZOOM' and interview.details %}
+                                            <a href="{{ interview.details }}" class="btn btn-sm btn-success me-2" target="_blank">
+                                                <i class="bi bi-camera-video me-1"></i> Join
+                                            </a>
+                                            {% endif %}
+                                            <a href="{% url 'jobs:interview_detail' interview.pk %}" class="btn btn-sm btn-outline-primary me-2">
+                                                <i class="bi bi-info-circle me-1"></i> Details
+                                            </a>
+                                        {% else %}
+                                            <a href="{% url 'jobs:interview_detail' interview.pk %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-info-circle me-1"></i> Details
+                                            </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-4 text-muted">
+                                        <i class="bi bi-calendar-x fs-1"></i>
+                                        <p class="mt-2 mb-0">No interviews scheduled</p>
+                                        <a href="{% url 'jobs:job_list' %}" class="btn btn-sm btn-primary mt-2">
+                                            Browse Jobs
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-calendar-x fs-1"></i>
+                        <p class="mt-2 mb-0">No interviews scheduled</p>
+                        <a href="{% url 'jobs:job_list' %}" class="btn btn-sm btn-primary mt-2">
+                            Browse Jobs
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}

@@ -3,31 +3,169 @@
 
 {% block title %}Manage Application | SkillBridge{% endblock %}
 
+{% block extra_css %}
+<style>
+    .card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+    .card:hover {
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    }
+    .list-group-item {
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+    .badge {
+        font-size: 0.9rem;
+        padding: 0.5em 1em;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-5">
-    <h2>Manage Application</h2>
+<div class="container my-5">
     <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2>Manage Application for {{ application.job.title }}</h2>
+            <p class="mb-0">Applicant: {{ student_profile.user.username }} • Job: {{ application.job.title }}</p>
+        </div>
         <div class="card-body">
-            <h5>{{ application.job.title }} - {{ application.student.user.username }}</h5>
-            <p><strong>Applied Date:</strong> {{ application.applied_date|date:"Y-m-d" }}</p>
-            <p><strong>Current Status:</strong> {{ application.get_status_display }}</p>
-            {% if application.cover_letter %}
-            <p><strong>Cover Letter:</strong> {{ application.cover_letter }}</p>
-            {% endif %}
-            {% if application.resume %}
-            <p><strong>Resume:</strong> <a href="{{ application.resume.url }}" target="_blank">Download</a></p>
-            {% endif %}
+            <!-- Student Profile Section -->
+            <h4>Applicant Profile</h4>
+            <div class="bg-light p-3 rounded mb-4">
+                <h5>Basic Information</h5>
+                <p><strong>Username:</strong> {{ student_profile.user.username }}</p>
+                <p><strong>Email:</strong> {{ student_profile.user.email }}</p>
+                {% if student_profile.student_id_document %}
+                    <p><strong>Student ID Document:</strong> 
+                        <a href="{{ student_profile.student_id_document.url }}" target="_blank">View Document</a>
+                    </p>
+                {% else %}
+                    <p><strong>Student ID Document:</strong> Not provided</p>
+                {% endif %}
+                <p><strong>Work Preference:</strong> {{ student_profile.work_preference|default:"Not specified" }}</p>
+                <p><strong>Availability:</strong> {{ student_profile.availability|default:"Not specified" }}</p>
+                {% if student_profile.resume %}
+                    <p><strong>Resume:</strong> 
+                        <a href="{{ student_profile.resume.url }}" target="_blank">View Resume</a>
+                    </p>
+                {% else %}
+                    <p><strong>Resume:</strong> Not provided</p>
+                {% endif %}
+                
+                <h5 class="mt-4">Skills</h5>
+                {% if student_profile.skills.exists %}
+                    <div class="d-flex flex-wrap">
+                        {% for skill in student_profile.skills.all %}
+                            <span class="badge bg-primary me-2 mb-2">{{ skill.name }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No skills listed</p>
+                {% endif %}
+                
+                <h5 class="mt-4">Education</h5>
+                {% if student_profile.educations.exists %}
+                    <ul class="list-group mb-3">
+                        {% for education in student_profile.educations.all %}
+                            <li class="list-group-item">
+                                <strong>{{ education.institution }}</strong> - {{ education.degree }} ({{ education.start_date|date:"Y" }} - {{ education.end_date|date:"Y"|default:"Present" }})
+                                <p>{{ education.description|default:"No description" }}</p>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">No education details provided</p>
+                {% endif %}
+                
+                <h5 class="mt-4">Experience</h5>
+                {% if student_profile.experiences.exists %}
+                    <ul class="list-group mb-3">
+                        {% for experience in student_profile.experiences.all %}
+                            <li class="list-group-item">
+                                <strong>{{ experience.title }} at {{ experience.company }}</strong> ({{ experience.start_date|date:"Y" }} - {{ experience.end_date|date:"Y"|default:"Present" }})
+                                <p>{{ experience.description|default:"No description" }}</p>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">No experience details provided</p>
+                {% endif %}
+                
+                <h5 class="mt-4">Portfolio Items</h5>
+                {% if student_profile.portfolio_items.exists %}
+                    <ul class="list-group mb-3">
+                        {% for item in student_profile.portfolio_items.all %}
+                            <li class="list-group-item">
+                                <strong>{{ item.title }}</strong>
+                                <p>{{ item.description|default:"No description" }}</p>
+                                {% if item.url %}
+                                    <a href="{{ item.url }}" target="_blank">View Portfolio</a>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">No portfolio items provided</p>
+                {% endif %}
+            </div>
+            
+            <!-- Application Details Section -->
+            <h4>Application Details</h4>
+            <div class="bg-light p-3 rounded mb-4">
+                <p><strong>Applied Date:</strong> {{ application.applied_date|date:"M d, Y H:i" }}</p>
+                <p><strong>Status:</strong> 
+                    <span class="badge bg-{% if application.status == 'INTERVIEW' %}success{% elif application.status == 'PENDING' %}warning{% elif application.status == 'REJECTED' %}danger{% else %}primary{% endif %}">
+                        {{ application.get_status_display }}
+                    </span>
+                </p>
+                {% if application.cover_letter %}
+                    <p><strong>Cover Letter:</strong></p>
+                    <div class="border p-3 bg-white rounded">
+                        {{ application.cover_letter|linebreaks }}
+                    </div>
+                {% else %}
+                    <p><strong>Cover Letter:</strong> Not provided</p>
+                {% endif %}
+                {% if application.resume %}
+                    <p><strong>Application Resume:</strong> 
+                        <a href="{{ application.resume.url }}" target="_blank">View Resume</a>
+                    </p>
+                {% else %}
+                    <p><strong>Application Resume:</strong> Not provided</p>
+                {% endif %}
+                {% if application.responses.exists %}
+                    <h5 class="mt-4">Custom Question Responses</h5>
+                    <ul class="list-group">
+                        {% for response in application.responses.all %}
+                            <li class="list-group-item">
+                                <strong>{{ response.question.question_text }}</strong>
+                                <p>{{ response.response }}</p>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            
+            <!-- Status Update Form -->
+            <h4>Update Application Status</h4>
             <form method="POST">
                 {% csrf_token %}
                 <div class="mb-3">
-                    <label for="status" class="form-label">Update Status</label>
-                    <select name="status" class="form-select">
-                        {% for value, label in application.STATUS_CHOICES %}
-                        <option value="{{ value }}" {% if application.status == value %}selected{% endif %}>{{ label }}</option>
+                    <label for="status" class="form-label">Application Status</label>
+                    <select name="status" id="status" class="form-select">
+                        {% for value, label in status_choices %}
+                            <option value="{{ value }}" {% if application.status == value %}selected{% endif %}>{{ label }}</option>
                         {% endfor %}
                     </select>
                 </div>
-                <button type="submit" class="btn btn-primary">Update</button>
+                <button type="submit" class="btn btn-primary">Update Status</button>
+                {% if application.status == 'PENDING' %}
+                    <a href="{% url 'jobs:schedule_interview' application.pk %}" class="btn btn-success ms-2">Schedule Interview</a>
+                {% endif %}
             </form>
         </div>
     </div>

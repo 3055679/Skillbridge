@@ -1,8 +1,235 @@
 {% extends "base.html" %}
+{% load static crispy_forms_tags %}
+
 {% block title %}Resume Builder | SkillBridge{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3f37c9;
+        --accent-color: #4895ef;
+        --light-bg: #f8f9fa;
+    }
+    .card { border: none; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,.05); transition: .3s; }
+    .card:hover { box-shadow: 0 8px 30px rgba(0,0,0,.1); }
+    .card-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color:#fff; border-radius:12px 12px 0 0; padding:1.25rem 1.5rem;
+    }
+    .btn-primary { background-color: var(--primary-color); border-color: var(--primary-color); }
+    .btn-primary:hover { background-color: var(--secondary-color); border-color: var(--secondary-color); }
+    .form-section { background:#fff; border-radius:12px; padding:2rem; }
+    .badge-soft { background: var(--light-bg); color:#555; border:1px solid #e9ecef; }
+    .item-row { border:1px solid #e9ecef; border-radius:10px; padding:12px 14px; background:#fff; }
+    .item-row + .item-row { margin-top:10px; }
+    .item-row .title { font-weight:600; }
+    .item-row .meta { font-size:.9rem; color:#6c757d; }
+    .limit-hint { font-size:.9rem; color:#6c757d; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-5">
-    <h2>Resume Builder</h2>
-    <p>Placeholder for resume builder.</p>
+<div class="container my-5">
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="mb-0"><i class="bi bi-file-earmark-person me-2"></i>Resume Builder</h2>
+          <p class="mb-0">Select up to two Education and two Experiences, review, then generate an ATS-friendly PDF.</p>
+        </div>
+
+        {% if latex_error %}
+            <div class="alert alert-danger">
+                <strong>LaTeX error:</strong>
+                <pre class="small" style="white-space: pre-wrap;">{{ latex_error }}</pre>
+            </div>
+        {% endif %}
+
+
+        <div class="card-body form-section">
+          {% if messages %}
+            <div class="mb-4">
+              {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                  {{ message }}
+                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <form method="POST">
+            {% csrf_token %}
+
+            <fieldset class="mb-4">
+              <legend>Personal Information</legend>
+              <div class="row g-3">
+                <div class="col-md-6">{{ form.first_name|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.last_name|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.email|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.phone|as_crispy_field }}</div>
+                <div class="col-12">{{ form.address|as_crispy_field }}</div>
+              </div>
+            </fieldset>
+
+            <!-- Education Section (select up to 2) -->
+            <div class="card mb-4" id="education-section">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0"><i class="bi bi-mortarboard me-2"></i>Education</h4>
+                <span class="limit-hint"><span id="education_ids-count" class="badge bg-secondary">0/2</span> selected</span>
+              </div>
+              <div class="card-body">
+                {% if form.education_ids.field.choices %}
+                  <div class="education-list">
+                    {% for val,label in form.education_ids.field.choices %}
+                      <div class="item-row d-flex align-items-start justify-content-between">
+                        <div>
+                          <div class="form-check">
+                            <input class="form-check-input edu-check" type="checkbox" name="education_ids" id="edu_{{ forloop.counter }}" value="{{ val }}">
+                            <label class="form-check-label title" for="edu_{{ forloop.counter }}">{{ label }}</label>
+                          </div>
+                        </div>
+                        <div class="dropdown">
+                          <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots-vertical"></i>
+                          </button>
+                          <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'accounts:student_profile' %}#education">Edit in Profile</a></li>
+                          </ul>
+                        </div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <p class="text-muted mb-0">No education found in your profile. Please add at least one.</p>
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- Experience Section (select up to 2) -->
+            <div class="card mb-4" id="experience-section">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0"><i class="bi bi-briefcase me-2"></i>Work Experience</h4>
+                <span class="limit-hint"><span id="experience_ids-count" class="badge bg-secondary">0/2</span> selected</span>
+              </div>
+              <div class="card-body">
+                {% if form.experience_ids.field.choices %}
+                  <div class="experience-list">
+                    {% for val,label in form.experience_ids.field.choices %}
+                      <div class="item-row d-flex align-items-start justify-content-between">
+                        <div>
+                          <div class="form-check">
+                            <input class="form-check-input exp-check" type="checkbox" name="experience_ids" id="exp_{{ forloop.counter }}" value="{{ val }}">
+                            <label class="form-check-label title" for="exp_{{ forloop.counter }}">{{ label }}</label>
+                          </div>
+                        </div>
+                        <div class="dropdown">
+                          <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots-vertical"></i>
+                          </button>
+                          <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'accounts:student_profile' %}#experience">Edit in Profile</a></li>
+                          </ul>
+                        </div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <p class="text-muted mb-0">Add experience in your profile (optional for interns/juniors).</p>
+                {% endif %}
+              </div>
+            </div>
+
+            <fieldset class="mb-4">
+              <legend>Skills</legend>
+              {{ form.skills|as_crispy_field }}
+              <small class="text-muted">One per line (e.g., Python, Django, JavaScript)</small>
+            </fieldset>
+
+            <fieldset class="mb-4">
+              <legend>Additional Information</legend>
+              {{ form.additional_info|as_crispy_field }}
+            </fieldset>
+
+            <div class="row g-3 align-items-end">
+              <div class="col-md-4">
+                {{ form.theme|as_crispy_field }}
+              </div>
+              <div class="col-md-8 d-flex gap-2 justify-content-end">
+                <a href="{% url 'jobs:student_dashboard' %}" class="btn btn-outline-secondary">
+                  <i class="bi bi-arrow-left-circle me-1"></i> Back to Dashboard
+                </a>
+                <button type="submit" class="btn btn-primary">
+                  <i class="bi bi-file-earmark-pdf me-1"></i> Generate Resume
+                </button>
+              </div>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right side: overview -->
+    <div class="col-lg-4">
+      <div class="card h-100">
+        <div class="card-header">
+          <h5 class="mb-0"><i class="bi bi-eye me-2"></i>Resume Overview</h5>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <span class="badge badge-soft me-2">Education: <span id="edu-overview-count">0</span>/2</span>
+            <span class="badge badge-soft">Experience: <span id="exp-overview-count">0</span>/2</span>
+          </div>
+          <ul id="edu-overview" class="list-unstyled small mb-3"></ul>
+          <ul id="exp-overview" class="list-unstyled small mb-0"></ul>
+          <hr>
+          <p class="text-muted small mb-0">Tip: ATS prefers simple layouts, clear headings, and bullet points. Avoid photos, icons, or tables.</p>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
+
+<script>
+(function(){
+  function limitCheckboxes(selector, limit, counterId, listId) {
+    const boxes = document.querySelectorAll(selector);
+    const counter = document.getElementById(counterId);
+    const list = document.getElementById(listId);
+    const badge = document.getElementById(selector.includes('edu') ? 'education_ids-count' : 'experience_ids-count');
+
+    function refresh() {
+      const chosen = Array.from(boxes).filter(b => b.checked);
+      // disable others when limit reached
+      const atLimit = chosen.length >= limit;
+      boxes.forEach(b => { if(!b.checked) b.disabled = atLimit; });
+
+      // counters
+      if (counter) counter.textContent = chosen.length;
+      if (badge) badge.textContent = chosen.length + '/' + limit;
+
+      // overview list
+      if (list) {
+        list.innerHTML = '';
+        chosen.forEach(b => {
+          const label = document.querySelector('label[for="'+b.id+'"]');
+          const li = document.createElement('li');
+          li.textContent = label ? label.textContent : b.value;
+          list.appendChild(li);
+        });
+      }
+    }
+
+    boxes.forEach(b => b.addEventListener('change', refresh));
+    refresh();
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    limitCheckboxes('input.edu-check', 2, 'edu-overview-count', 'edu-overview');
+    limitCheckboxes('input.exp-check', 2, 'exp-overview-count', 'exp-overview');
+  });
+})();
+</script>
 {% endblock %}

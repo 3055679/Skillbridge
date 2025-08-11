@@ -1,6 +1,7 @@
-from django.urls import path
+from django.urls import path, reverse_lazy
 from . import views
 from django.contrib.auth import views as auth_views
+from .forms import CustomPasswordResetForm, CustomPasswordChangeForm
 
 app_name = 'accounts'
 
@@ -16,7 +17,9 @@ urlpatterns = [
          auth_views.PasswordResetView.as_view(
              template_name='accounts/password_reset.html',
              email_template_name='accounts/password_reset_email.html',
-             subject_template_name='accounts/password_reset_subject.txt'
+             subject_template_name='accounts/password_reset_subject.txt',
+             success_url=reverse_lazy('accounts:password_reset_done'),
+             form_class=CustomPasswordResetForm
          ), 
          name='password_reset'),
     path('password-reset/done/', 
@@ -26,7 +29,8 @@ urlpatterns = [
          name='password_reset_done'),
     path('password-reset-confirm/<uidb64>/<token>/', 
          auth_views.PasswordResetConfirmView.as_view(
-             template_name='accounts/password_reset_confirm.html'
+             template_name='accounts/password_reset_confirm.html',
+             success_url=reverse_lazy('accounts:password_reset_complete')
          ), 
          name='password_reset_confirm'),
     path('password-reset-complete/', 
@@ -34,6 +38,18 @@ urlpatterns = [
              template_name='accounts/password_reset_complete.html'
          ), 
          name='password_reset_complete'),
+    path('password-change/', 
+         auth_views.PasswordChangeView.as_view(
+             template_name='accounts/password_change.html',
+             success_url=reverse_lazy('accounts:password_change_done'),
+             form_class=CustomPasswordChangeForm
+         ), 
+         name='password_change'),
+    path('password-change/done/', 
+         auth_views.PasswordChangeDoneView.as_view(
+             template_name='accounts/password_change_done.html'
+         ), 
+         name='password_change_done'),
     path('profile/student/', views.student_profile, name='student_profile'),
     path('profile/employer/', views.employer_profile, name='employer_profile'),
     path('skills/remove/<int:skill_id>/', views.remove_skill, name='remove_skill'),

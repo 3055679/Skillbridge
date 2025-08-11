@@ -11,8 +11,10 @@ from django.conf import settings
 from django.db import transaction
 import uuid
 import logging
-from .forms import StudentSignUpForm, EmployerSignUpForm, LoginForm, UserUpdateForm, StudentProfileForm, EmployerProfileForm, EducationForm, ExperienceForm, PortfolioForm, EducationFormSet, ExperienceFormSet, PortfolioFormSet, CustomPasswordChangeForm
-from .models import User, StudentProfile, EmployerProfile, Skill, Education, Experience, PortfolioItem, UserProfile
+from .forms import StudentSignUpForm, EmployerSignUpForm, LoginForm, UserUpdateForm, StudentProfileForm, EmployerProfileForm, EducationForm, ExperienceForm, PortfolioForm, EducationFormSet, ExperienceFormSet, PortfolioFormSet
+from .models import StudentProfile, EmployerProfile, Skill, Education, Experience, PortfolioItem, UserProfile
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +55,7 @@ def student_signup(request):
                         country=form.cleaned_data['country'],
                         student_id_document=student_id_document,
                         student_id_verified=bool(university_email),
+                        personal_email=form.cleaned_data['personal_email'],
                     )
                     
                     if has_university_email and university_email:
@@ -324,57 +327,39 @@ def student_profile(request):
     if request.method == 'POST':
         form_type = request.POST.get('form_type')
         
-        if form_type == 'password':
-            password_form = CustomPasswordChangeForm(user=request.user, data=request.POST)
-            if password_form.is_valid():
-                user = password_form.save()
-                update_session_auth_hash(request, user)
-                
-                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                    return JsonResponse({
-                        'success': True,
-                        'message': 'Password updated successfully!'
-                    })
-                messages.success(request, 'Password updated successfully!')
-                return redirect('accounts:student_profile')
-            else:
-                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                    return JsonResponse({
-                        'success': False,
-                        'errors': {field: errors[0] for field, errors in password_form.errors.items()}
-                    })
-                messages.error(request, 'Please correct the errors below.')
-        
-        user_form = UserUpdateForm(request.POST, instance=request.user)
-        profile_form = StudentProfileForm(request.POST, request.FILES, instance=profile)
-        education_formset = EducationFormSet(request.POST, instance=profile)
-        experience_formset = ExperienceFormSet(request.POST, request.FILES, instance=profile)
-        portfolio_formset = PortfolioFormSet(request.POST, request.FILES, instance=profile)
-        
         if form_type == 'profile' and user_form.is_valid() and profile_form.is_valid():
+            user_form = UserUpdateForm(request.POST, instance=request.user)
+            profile_form = StudentProfileForm(request.POST, request.FILES, instance=profile)
             user_form.save()
             profile_form.save()
             messages.success(request, 'Profile updated successfully.')
             return redirect('accounts:student_profile')
-        elif form_type == 'education' and education_formset.is_valid():
-            education_formset.save()
-            messages.success(request, 'Education updated successfully.')
-            return redirect('accounts:student_profile')
-        elif form_type == 'experience' and experience_formset.is_valid():
-            experience_formset.save()
-            messages.success(request, 'Experience updated successfully.')
-            return redirect('accounts:student_profile')
-        elif form_type == 'portfolio' and portfolio_formset.is_valid():
-            portfolio_formset.save()
-            messages.success(request, 'Portfolio updated successfully.')
-            return redirect('accounts:student_profile')
+        elif form_type == 'education':
+            education_formset = EducationFormSet(request.POST, instance=profile)
+            if education_formset.is_valid():
+                education_formset.save()
+                messages.success(request, 'Education updated successfully.')
+                return redirect('accounts:student_profile')
+        elif form_type == 'experience':
+            experience_formset = ExperienceFormSet(request.POST, request.FILES, instance=profile)
+            if experience_formset.is_valid():
+                experience_formset.save()
+                messages.success(request, 'Experience updated successfully.')
+                return redirect('accounts:student_profile')
+        elif form_type == 'portfolio':
+            portfolio_formset = PortfolioFormSet(request.POST, request.FILES, instance=profile)
+            if portfolio_formset.is_valid():
+                portfolio_formset.save()
+                messages.success(request, 'Portfolio updated successfully.')
+                return redirect('accounts:student_profile')
+        else:
+            messages.error(request, 'Please correct the errors below.')
     else:
         user_form = UserUpdateForm(instance=request.user)
         profile_form = StudentProfileForm(instance=profile)
         education_formset = EducationFormSet(instance=profile)
         experience_formset = ExperienceFormSet(instance=profile)
         portfolio_formset = PortfolioFormSet(instance=profile)
-        password_form = CustomPasswordChangeForm(user=request.user)
     
     context = {
         'student': profile,
@@ -383,7 +368,6 @@ def student_profile(request):
         'education_formset': education_formset,
         'experience_formset': experience_formset,
         'portfolio_formset': portfolio_formset,
-        'password_form': password_form,
         'all_skills': all_skills,
         'educations': profile.educations.all(),
         'experiences': profile.experiences.all(),

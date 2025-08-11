@@ -3,50 +3,159 @@
 
 {% block title %}{{ job.title }} | SkillBridge{% endblock %}
 
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3f37c9;
+        --accent-color: #4895ef;
+        --light-bg: #f8f9fa;
+    }
+
+    .job-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .job-card:hover {
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .job-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border-radius: 12px 12px 0 0;
+        padding: 2rem;
+    }
+
+    .job-media img, .job-media video {
+        max-height: 300px;
+        object-fit: cover;
+        border-radius: 8px;
+        width: 100%;
+    }
+
+    .detail-item {
+        padding: 1rem 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .detail-item:last-child {
+        border-bottom: none;
+    }
+
+    .detail-label {
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .badge {
+        font-size: 0.9rem;
+        padding: 0.5em 1em;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-    <div class="card">
-        <div class="card-header">
-            <h2>{{ job.title }}</h2>
-            <p class="text-muted">{{ job.employer.company_name }} • {{ job.location }}</p>
+<div class="container my-5">
+    <div class="job-card">
+        <div class="job-header">
+            <h2 class="mb-1">{{ job.title }}</h2>
+            <p class="mb-0">{{ job.employer.company_name }} • {{ job.location }}</p>
         </div>
         <div class="card-body">
-            <h4>Job Details</h4>
-            <p><strong>Type:</strong> {{ job.get_job_type_display }}</p>
-            <p><strong>Interview Type:</strong> {{ job.get_interview_type_display }}</p>
-            {% if job.interview_type == 'FACE_TO_FACE' and job.location_address %}
-                <p><strong>Location Address:</strong> {{ job.location_address }}</p>
-                <!-- Placeholder static map -->
-                <div id="map" style="height: 300px; width: 100%; background: url('https://tile.openstreetmap.org/12/1205/1496.png') center/cover no-repeat;">
-                    <p class="text-center text-muted" style="padding-top: 120px;">Placeholder Map (Centered on New York City) - Replace with API</p>
+            {% if job.media %}
+                <div class="job-media mb-4">
+                    {% if job.media_type == 'image' %}
+                        <img src="{{ job.media.url }}" alt="{{ job.title }} media" class="img-fluid">
+                    {% elif job.media_type == 'video' %}
+                        <video controls class="w-100">
+                            <source src="{{ job.media.url }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    {% endif %}
                 </div>
             {% endif %}
-            <p><strong>Salary:</strong> ${{ job.salary|floatformat:2 }}</p>
-            <p><strong>Posted:</strong> {{ job.posted_date|date:"M d, Y" }}</p>
-            <p><strong>Application Deadline:</strong> {{ job.application_deadline|date:"M d, Y"|default:"N/A" }}</p>
-            <p><strong>Description:</strong></p>
-            <p>{{ job.description|linebreaks }}</p>
             
-            <div class="requirements-section mb-4">
-                <h4>Requirements</h4>
-                {% if job.requirements %}
-                    <div class="bg-light p-3 rounded">
-                        {{ job.requirements|linebreaks }}
+            <div class="detail-item">
+                <div class="row">
+                    <div class="col-md-3 detail-label">Job Type</div>
+                    <div class="col-md-9">
+                        <span class="badge bg-{% if job.job_type == 'INT' %}primary{% else %}info{% endif %}">
+                            {{ job.get_job_type_display }}
+                        </span>
                     </div>
-                {% else %}
-                    <p class="text-muted">No specific requirements listed</p>
-                {% endif %}
+                </div>
+            </div>
+            <div class="detail-item">
+                <div class="row">
+                    <div class="col-md-3 detail-label">Description</div>
+                    <div class="col-md-9">{{ job.description|linebreaks }}</div>
+                </div>
+            </div>
+            {% if job.requirements %}
+            <div class="detail-item">
+                <div class="row">
+                    <div class="col-md-3 detail-label">Requirements</div>
+                    <div class="col-md-9">{{ job.requirements|linebreaks }}</div>
+                </div>
+            </div>
+            {% endif %}
+            <div class="detail-item">
+                <div class="row">
+                    <div class="col-md-3 detail-label">Salary</div>
+                    <div class="col-md-9">{{ job.salary|default:"Not specified" }}</div>
+                </div>
+            </div>
+            <div class="detail-item">
+                <div class="row">
+                    <div class="col-md-3 detail-label">Interview Type</div>
+                    <div class="col-md-9">{{ job.get_interview_type_display }}</div>
+                </div>
+            </div>
+            {% if job.location_address %}
+            <div class="detail-item">
+                <div class="row">
+                    <div class="col-md-3 detail-label">Location Address</div>
+                    <div class="col-md-9">{{ job.location_address }}</div>
+                </div>
+            </div>
+            {% endif %}
+            <div class="detail-item">
+                <div class="row">
+                    <div class="col-md-3 detail-label">Posted Date</div>
+                    <div class="col-md-9">{{ job.posted_date|date:"M d, Y" }}</div>
+                </div>
+            </div>
+            <div class="detail-item">
+                <div class="row">
+                    <div class="col-md-3 detail-label">Application Deadline</div>
+                    <div class="col-md-9">{{ job.application_deadline|date:"M d, Y H:i"|default:"N/A" }}</div>
+                </div>
+            </div>
+            <div class="detail-item">
+                <div class="row">
+                    <div class="col-md-3 detail-label">Status</div>
+                    <div class="col-md-9">
+                        <span class="badge bg-{% if job.is_active %}success{% else %}danger{% endif %}">
+                            {{ job.is_active|yesno:"Active,Closed" }}
+                        </span>
+                    </div>
+                </div>
             </div>
             
-            {% if is_closed %}
-                <p class="text-danger">This job is closed and no longer accepting applications.</p>
-            {% else %}
-                {% if user.is_authenticated and user.is_student %}
-                    <a href="{% url 'jobs:apply_job' job.id %}" class="btn btn-primary">Apply Now</a>
-                    <a href="{% url 'jobs:save_job' job.id %}" class="btn btn-outline-secondary">Save Job</a>
-                {% elif not user.is_authenticated %}
-                    <p>Please <a href="{% url 'accounts:login' %}">log in</a> or <a href="{% url 'accounts:student_signup' %}">sign up</a> as a student to apply for this job.</p>
-                {% endif %}
+            {% if not is_closed and user.is_authenticated and user.is_student %}
+            <div class="mt-4">
+                <a href="{% url 'jobs:apply_job' job.id %}" class="btn btn-primary">
+                    <i class="bi bi-briefcase-fill me-1"></i> Apply Now
+                </a>
+            </div>
+            {% elif is_closed %}
+            <div class="alert alert-warning mt-4">
+                This job is no longer accepting applications.
+            </div>
             {% endif %}
         </div>
     </div>

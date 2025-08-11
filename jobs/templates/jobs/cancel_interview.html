@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Cancel Interview | SkillBridge{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header bg-danger text-white">
+            <h2>Cancel Interview</h2>
+            <p class="mb-0">For {{ application.job.title }} • Applicant: {{ application.student.user.username }}</p>
+        </div>
+        <div class="card-body">
+            <p>Are you sure you want to cancel this interview scheduled for {{ interview.interview_date|date:"M d, Y H:i" }}?</p>
+            <form method="POST">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Confirm Cancel</button>
+                <a href="{% url 'jobs:employer_interviews' %}" class="btn btn-secondary">Back</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+</style>
+{% endblock %}

@@ -3,21 +3,23 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.utils.html import mark_safe
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 
 class User(AbstractUser):
     is_student = models.BooleanField(default=False)
     is_employer = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
+    # is_active = models.BooleanField(default=True)
 
 class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='userprofile')
+    # user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='userprofile')
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='userprofile')
     email_verification_token = models.UUIDField(blank=True, null=True)
     email_verified = models.BooleanField(default=False)
 
 class EmployerProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    # user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, primary_key=True)
     company_name = models.CharField(max_length=200)
     email = models.EmailField(unique=True)
     phone_regex = RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Phone number must be entered in the format: '+999999999'.")
@@ -43,7 +45,9 @@ class Skill(models.Model):
         ordering = ['name']
 
 class StudentProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE,primary_key=True)
+    # user = models.OneToOneField(User, on_delete=models.CASCADE,primary_key=True)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, primary_key=True)
+    personal_email = models.EmailField(unique=True, blank=True, null=True)
     profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
     profile_picture_url = models.URLField(blank=True, null=True)
     bio = models.TextField(blank=True, null=True)

@@ -1,86 +1,109 @@
 {% extends "base.html" %}
 {% load static crispy_forms_tags %}
 
-{% block title %}Post a Job | SkillBridge{% endblock %}
+{% block title %}Post Job | SkillBridge{% endblock %}
+
+{% block extra_head %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3f37c9;
+        --accent-color: #4895ef;
+        --light-bg: #f8f9fa;
+    }
+
+    .job-type-card {
+        border: 2px solid transparent;
+        border-radius: 8px;
+        padding: 1rem;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+
+    .job-type-card.selected {
+        border-color: var(--primary-color);
+        background: rgba(67, 97, 238, 0.1);
+    }
+
+    .job-type-card:hover {
+        background: rgba(0, 0, 0, 0.05);
+    }
+
+    .form-section {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="card">
-        <div class="card-header bg-primary text-white">
-            <h2>Post a New Job</h2>
-        </div>
-        <div class="card-body">
-            <form method="POST">
-                {% csrf_token %}
-                
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        {{ form.title|as_crispy_field }}
-                    </div>
-                    <div class="col-md-6">
-                        {{ form.job_type|as_crispy_field }}
+<div class="container my-5">
+    <div class="form-section">
+        <h2 class="mb-4"><i class="bi bi-plus-circle me-2"></i>Post a New Job</h2>
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="job-type-card {% if form.job_type.value == 'INT' %}selected{% endif %}" data-type="INT">
+                        <h5><i class="bi bi-briefcase me-2"></i>Internship</h5>
+                        <p class="text-muted">{{ form.instance.INTERNSHIP_DESCRIPTION }}</p>
                     </div>
                 </div>
-                
-                {{ form.description|as_crispy_field }}
-                
-                <div class="requirements-section mb-4">
-                    <h5>Specific Requirements</h5>
-                    <div class="alert alert-info">
-                        <small>
-                            <i class="bi bi-info-circle"></i> 
-                            List the specific skills/qualifications needed (one per line or as bullet points)
-                        </small>
-                    </div>
-                    {{ form.requirements|as_crispy_field }}
-                </div>
-                
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        {{ form.location|as_crispy_field }}
-                    </div>
-                    <div class="col-md-6">
-                        {{ form.salary|as_crispy_field }}
+                <div class="col-md-6">
+                    <div class="job-type-card {% if form.job_type.value == 'GIG' %}selected{% endif %}" data-type="GIG">
+                        <h5><i class="bi bi-lightning-charge me-2"></i>Gig</h5>
+                        <p class="text-muted">{{ form.instance.GIG_DESCRIPTION }}</p>
                     </div>
                 </div>
-                
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        {{ form.max_applications|as_crispy_field }}
+                {{ form.job_type|as_crispy_field }}
+            </div>
+            {{ form|crispy }}
+            <h4 class="mt-4">Custom Questions</h4>
+            {{ question_formset.management_form }}
+            {% for qform in question_formset %}
+                <div class="form-section mb-3">
+                    {{ qform|crispy }}
+                    {% if not forloop.first %}
+                    <div class="form-check">
+                        <input type="checkbox" name="{{ qform.prefix }}-DELETE" id="{{ qform.prefix }}-DELETE" class="form-check-input">
+                        <label for="{{ qform.prefix }}-DELETE" class="form-check-label">Delete this question</label>
                     </div>
-                    <div class="col-md-6">
-                        {{ form.application_deadline|as_crispy_field }}
-                    </div>
+                    {% endif %}
                 </div>
-                
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        {{ form.interview_type|as_crispy_field }}
-                    </div>
-                    <div class="col-md-6" id="location_field" {% if form.interview_type.value != 'FACE_TO_FACE' %}style="display: none;"{% endif %}>
-                        {{ form.location_address|as_crispy_field }}
-                    </div>
-                </div>
-                
-                <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-primary btn-lg">
-                        <i class="bi bi-send"></i> Post Job
-                    </button>
-                </div>
-            </form>
-        </div>
+            {% endfor %}
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save me-1"></i> Post Job
+                </button>
+                <a href="{% url 'jobs:employer_dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
     </div>
 </div>
 
+{% block extra_js %}
 <script>
-document.getElementById('id_interview_type').addEventListener('change', function() {
-    var locationField = document.getElementById('location_field');
-    if (this.value === 'FACE_TO_FACE') {
-        locationField.style.display = 'block';
-    } else {
-        locationField.style.display = 'none';
-        document.getElementById('id_location_address').value = '';
-    }
+document.addEventListener('DOMContentLoaded', function() {
+    const jobTypeCards = document.querySelectorAll('.job-type-card');
+    const jobTypeInput = document.getElementById('id_job_type');
+    
+    jobTypeCards.forEach(card => {
+        card.addEventListener('click', function() {
+            jobTypeCards.forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+            jobTypeInput.value = this.dataset.type;
+        });
+    });
 });
 </script>
+{% endblock %}
 {% endblock %}

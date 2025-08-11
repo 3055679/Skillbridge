@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% load static crispy_forms_tags %}
+
+{% block title %}Manage Max Applications | SkillBridge{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3f37c9;
+        --accent-color: #4895ef;
+        --light-bg: #f8f9fa;
+    }
+
+    .card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .card:hover {
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border-radius: 12px 12px 0 0;
+        padding: 1.5rem;
+    }
+
+    .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .btn-primary:hover {
+        background-color: var(--secondary-color);
+        border-color: var(--secondary-color);
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+
+    .btn-danger:hover {
+        background-color: #c82333;
+        border-color: #c82333;
+    }
+
+    .form-section {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="card">
+        <div class="card-header">
+            <h2>Manage Applications for {{ job.title }}</h2>
+            <p class="mb-0">Maximum applications reached ({{ job.applications.count }}/{{ job.max_applications }})</p>
+        </div>
+        <div class="card-body form-section">
+            <p class="text-muted mb-4">The job posting has reached its maximum application limit. You can either increase the maximum number of applications or close the job posting.</p>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-4">
+                    {{ form|crispy }}
+                </div>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-arrow-up-circle me-1"></i> Update Max Applications
+                    </button>
+                    <button type="submit" name="action" value="close" class="btn btn-danger">
+                        <i class="bi bi-x-circle me-1"></i> Close Job
+                    </button>
+                    <a href="{% url 'jobs:employer_dashboard' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left-circle me-1"></i> Back to Dashboard
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

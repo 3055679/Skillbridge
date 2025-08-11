@@ -1,15 +1,44 @@
 {% extends "base.html" %}
-   {% load crispy_forms_tags %}
+{% load static crispy_forms_tags %}
 
-   {% block title %}Apply for Job | SkillBridge{% endblock %}
+{% block title %}Apply for {{ job.title }} | SkillBridge{% endblock %}
 
-   {% block content %}
-   <div class="container mt-5">
-       <h2>Apply for {{ job.title }}</h2>
-       <form method="POST" enctype="multipart/form-data">
-           {% csrf_token %}
-           {{ form|crispy }}
-           <button type="submit" class="btn btn-primary">Submit Application</button>
-       </form>
-   </div>
-   {% endblock %}
+{% block content %}
+<div class="container my-5">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2>Apply for {{ job.title }}</h2>
+            <p class="mb-0">{{ job.employer.company_name }} • {{ job.location }}</p>
+        </div>
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form|crispy }}
+                {% if job.questions.exists %}
+                <h4 class="mt-4">Additional Questions</h4>
+                {% for question in job.questions.all %}
+                <div class="mb-3">
+                    <label class="form-label">{{ question.question_text }}</label>
+                    {% if question.question_type == 'text' %}
+                        <textarea name="question_{{ question.id }}" class="form-control" rows="4" required></textarea>
+                    {% else %}
+                        <select name="question_{{ question.id }}" class="form-select" required>
+                            {% for choice in question.choices %}
+                                <option value="{{ choice }}">{{ choice }}</option>
+                            {% endfor %}
+                        </select>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% endif %}
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-send me-1"></i> Submit Application
+                    </button>
+                    <a href="{% url 'jobs:job_detail' job.id %}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

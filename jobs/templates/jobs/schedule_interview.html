@@ -4,14 +4,24 @@
 {% block title %}Schedule Interview | SkillBridge{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <h2>Schedule Interview for {{ application.job.title }}</h2>
-    <form method="POST" class="mt-4">
-        {% csrf_token %}
-        {{ form|crispy }}
-        <div class="d-grid gap-2">
-            <button type="submit" class="btn btn-primary">Schedule Interview</button>
+<div class="container my-5">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2>Schedule Interview for {{ application.job.title }}</h2>
+            <p class="mb-0">Applicant: {{ application.student.user.username }}</p>
         </div>
-    </form>
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-calendar-check me-1"></i> Schedule Interview
+                    </button>
+                    <a href="{% url 'jobs:employer_dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 {% endblock %}

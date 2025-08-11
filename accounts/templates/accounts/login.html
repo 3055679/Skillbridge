@@ -125,6 +125,9 @@
                                 </div>
                             {% endif %}
                         </div>
+                        <div class="forgot-password">
+                            <a href="{% url 'accounts:password_reset' %}" class="auth-link">Forgot password?</a>
+                        </div>
                         <button type="submit" class="btn auth-btn w-100 text-white mb-3">Login</button>
                         <div class="auth-footer">
                             <p>Don't have an account? <a href="{% url 'accounts:student_signup' %}" class="auth-link">Register as Student</a></p>

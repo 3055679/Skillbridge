@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Interview Details | SkillBridge{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3f37c9;
+        --accent-color: #4895ef;
+        --light-bg: #f8f9fa;
+    }
+
+    .card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .card:hover {
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border-radius: 12px 12px 0 0;
+        padding: 1.5rem;
+    }
+
+    .detail-item {
+        padding: 1rem 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .detail-item:last-child {
+        border-bottom: none;
+    }
+
+    .detail-label {
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .badge {
+        font-size: 0.9rem;
+        padding: 0.5em 1em;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="card">
+        <div class="card-header">
+            <h2>Interview for {{ application.job.title }}</h2>
+            <p class="mb-0">
+                Applicant: {{ student_profile.user.username }} •
+                {% if user_type == 'student' %}
+                    Employer: {{ application.job.employer.company_name }}
+                {% else %}
+                    Job: {{ application.job.title }}
+                {% endif %}
+            </p>
+        </div>
+        <div class="card-body">
+            <div class="detail-item">
+                <div class="row">
+                    <div class="col-md-3 detail-label">Interview Date</div>
+                    <div class="col-md-9">{{ interview.interview_date|date:"M d, Y H:i" }}</div>
+                </div>
+            </div>
+            <div class="detail-item">
+                <div class="row">
+                    <div class="col-md-3 detail-label">Interview Type</div>
+                    <div class="col-md-9">{{ interview.get_interview_type_display }}</div>
+                </div>
+            </div>
+            <div class="detail-item">
+                <div class="row">
+                    <div class="col-md-3 detail-label">Status</div>
+                    <div class="col-md-9">
+                        <span class="badge bg-{% if interview.status == 'SCHEDULED' %}success{% else %}danger{% endif %}">
+                            {{ interview.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {% if interview.details %}
+            <div class="detail-item">
+                <div class="row">
+                    <div class="col-md-3 detail-label">Details</div>
+                    <div class="col-md-9">{{ interview.details|linebreaks }}</div>
+                </div>
+            </div>
+            {% endif %}
+            {% if interview.proposed_slots.exists %}
+            <div class="detail-item">
+                <div class="row">
+                    <div class="col-md-3 detail-label">Proposed Slots</div>
+                    <div class="col-md-9">
+                        <ul class="list-group">
+                            {% for slot in interview.proposed_slots.all %}
+                            <li class="list-group-item {{ slot.is_selected|yesno:'list-group-item-success,' }}">
+                                {{ slot.slot_time|date:"M d, Y H:i" }}
+                                {% if slot.is_selected %}
+                                    <span class="badge bg-success ms-2">Selected</span>
+                                {% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% if user_type == 'employer' and interview.status == 'SCHEDULED' %}
+            <div class="mt-4 d-flex gap-2">
+                <a href="{% url 'jobs:reschedule_interview' interview.pk %}" class="btn btn-warning">
+                    <i class="bi bi-calendar-event me-1"></i> Reschedule
+                </a>
+                <a href="{% url 'jobs:cancel_interview' interview.pk %}" class="btn btn-danger">
+                    <i class="bi bi-x-circle me-1"></i> Cancel
+                </a>
+            </div>
+            {% endif %}
+            <div class="mt-4">
+                <a href="{% if user_type == 'employer' %}{% url 'jobs:employer_interviews' %}{% else %}{% url 'jobs:interviews' %}{% endif %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left-circle me-1"></i> Back to Interviews
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

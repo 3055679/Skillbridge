@@ -1,9 +1,11 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm, UserChangeForm, PasswordChangeForm
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm, PasswordChangeForm, PasswordResetForm
 from django.forms import ModelForm, inlineformset_factory
 from django.core.validators import validate_email, FileExtensionValidator, RegexValidator
 from django.core.exceptions import ValidationError
-from .models import User, StudentProfile, EmployerProfile, Skill, Education, Experience, PortfolioItem
+from .models import  StudentProfile, EmployerProfile, Skill, Education, Experience, PortfolioItem
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 class StudentSignUpForm(UserCreationForm):
     first_name = forms.CharField(max_length=100, required=True)
@@ -195,3 +197,81 @@ class CustomPasswordChangeForm(PasswordChangeForm):
         super().__init__(*args, **kwargs)
         for field in self.fields:
             self.fields[field].widget.attrs.update({'class': 'form-control'})
+
+# class CustomPasswordResetForm(PasswordResetForm):
+#     username = forms.CharField(max_length=150, required=True)
+
+#     def clean(self):
+#         cleaned_data = super().clean()
+#         username = cleaned_data.get('username')
+#         email = cleaned_data.get('email')
+
+#         if username and email:
+#             try:
+#                 user = User.objects.get(username=username)
+#                 # Check if user is a student or employer
+#                 if hasattr(user, 'studentprofile'):
+#                     # Student: Validate personal_email
+#                     student_profile = user.studentprofile
+#                     if student_profile.personal_email is None or student_profile.personal_email != email:
+#                         raise ValidationError(
+#                             "The email does not match the personal email associated with this username."
+#                         )
+#                 elif hasattr(user, 'employerprofile'):
+#                     # Employer: Validate email (company email)
+#                     employer_profile = user.employerprofile
+#                     if employer_profile.email is None or employer_profile.email != email:
+#                         raise ValidationError(
+#                             "The email does not match the company email associated with this username."
+#                         )
+#                 else:
+#                     raise ValidationError("This username is not associated with a student or employer profile.")
+                
+#                 # Update User.email to ensure reset email is sent to the provided email
+#                 user.email = email
+#                 user.save()
+#             except User.DoesNotExist:
+#                 raise ValidationError("No user found with this username.")
+        
+#         return cleaned_data
+
+
+class CustomPasswordResetForm(PasswordResetForm):
+    username = forms.CharField(max_length=150, required=True)
+
+    def clean(self):
+        cleaned = super().clean()
+        username = cleaned.get('username', '').strip()
+        email    = cleaned.get('email', '').strip()
+
+        if not username or not email:
+            raise ValidationError("Please enter both username and email.")
+
+        # Case-insensitive username lookup against the CORRECT user model
+        user = User.objects.filter(username__iexact=username).first()
+        if not user:
+            raise ValidationError("No user found with this username.")
+
+        # If they have student/employer profile, validate the email against the right field
+        if hasattr(user, 'studentprofile'):
+            personal = getattr(user.studentprofile, 'personal_email', None)
+            if not personal or personal.lower() != email.lower():
+                raise ValidationError("The email does not match the personal email associated with this username.")
+        elif hasattr(user, 'employerprofile'):
+            company_email = getattr(user.employerprofile, 'email', None)
+            if not company_email or company_email.lower() != email.lower():
+                raise ValidationError("The email does not match the company email associated with this username.")
+        else:
+            raise ValidationError("This username is not associated with a student or employer profile.")
+
+        # Cache the user so get_users() can return it even if user.email differs
+        self.user_cache = user
+        return cleaned
+
+    # The base class finds users by comparing email to user.email.
+    # We want to send to 'email' but still reset THIS user.
+    def get_users(self, email):
+        user = getattr(self, 'user_cache', None)
+        if user and user.is_active:
+            return [user]
+        return []

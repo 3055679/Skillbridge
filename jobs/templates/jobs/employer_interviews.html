@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Interviews | SkillBridge{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3f37c9;
+        --accent-color: #4895ef;
+        --light-bg: #f8f9fa;
+    }
+
+    .card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .card:hover {
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border-radius: 12px 12px 0 0;
+    }
+
+    .table-responsive {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        color: #495057;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="card">
+        <div class="card-header">
+            <h2><i class="bi bi-calendar-event me-2"></i>Scheduled Interviews</h2>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Student</th>
+                            <th>Job</th>
+                            <th>Interview Date</th>
+                            <th>Interview Type</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for interview in interviews %}
+                        <tr>
+                            <td>{{ interview.application.student.user.username }}</td>
+                            <td>{{ interview.application.job.title }}</td>
+                            <td>{{ interview.interview_date|date:"M d, Y H:i" }}</td>
+                            <td>{{ interview.get_interview_type_display }}</td>
+                            <td>
+                                <span class="badge bg-{% if interview.status == 'SCHEDULED' %}success{% else %}danger{% endif %}">
+                                    {{ interview.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'jobs:interview_detail' interview.pk %}" class="btn btn-sm btn-outline-primary me-2">View</a>
+                                {% if interview.status == 'SCHEDULED' %}
+                                <a href="{% url 'jobs:reschedule_interview' interview.pk %}" class="btn btn-sm btn-outline-warning me-2">Reschedule</a>
+                                <a href="{% url 'jobs:cancel_interview' interview.pk %}" class="btn btn-sm btn-outline-danger">Cancel</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-muted text-center py-4">
+                                <i class="bi bi-calendar-x fs-1"></i>
+                                <p class="mt-2 mb-0">No scheduled interviews.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,49 +1,88 @@
 {% extends "base.html" %}
-{% load crispy_forms_tags %}
+{% load static crispy_forms_tags %}
+
+{% block title %}Employer Profile | SkillBridge{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3f37c9;
+        --accent-color: #4895ef;
+        --light-bg: #f8f9fa;
+    }
+
+    .card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .card:hover {
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border-radius: 12px 12px 0 0;
+        padding: 1.5rem;
+    }
+
+    .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .btn-primary:hover {
+        background-color: var(--secondary-color);
+        border-color: var(--secondary-color);
+    }
+
+    .profile-img {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border: 3px solid rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
+<div class="container my-5">
     <div class="row">
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body text-center">
-                    <img class="rounded-circle account-img mb-3" 
-                         src="{{ user.employerprofile.company_logo.url|default:'/static/images/user1.jpg' }}" 
-                         width="150" height="150">
-                    <h4>{{ user.employerprofile.company_name }}</h4>
-                    <p class="text-muted">{{ user.email }}</p>
-                    <p class="text-muted">{{ user.employerprofile.industry }}</p>
-                </div>
-            </div>
-            <div class="card mt-3">
-                <div class="card-body">
-                    <h5 class="card-title">Quick Links</h5>
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'jobs:employer_dashboard' %}">
-                                <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" href="{% url 'accounts:employer_profile' %}">
-                                <i class="bi bi-building me-2"></i> Company Profile
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'jobs:post_job' %}">
-                                <i class="bi bi-briefcase me-2"></i> Post Job
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-8">
+        <div class="col-12">
             <div class="card">
                 <div class="card-header">
                     <h4>Employer Profile</h4>
                 </div>
                 <div class="card-body">
+                    <div class="text-center mb-4">
+                        <img src="{% static 'images/user1.jpg' %}" 
+                             class="rounded-circle profile-img" alt="Company Logo">
+                        <h5 class="mt-3">{{ user.employerprofile.company_name }}</h5>
+                        <p class="text-muted">{{ user.email }}</p>
+                    </div>
                     <form method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
                         <fieldset class="mb-4">
@@ -54,7 +93,14 @@
                             <legend>Company Information</legend>
                             {{ profile_form|crispy }}
                         </fieldset>
-                        <button type="submit" class="btn btn-primary">Update Profile</button>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-1"></i> Update Profile
+                            </button>
+                            <a href="{% url 'jobs:employer_dashboard' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left-circle me-1"></i> Back to Dashboard
+                            </a>
+                        </div>
                     </form>
                 </div>
             </div>

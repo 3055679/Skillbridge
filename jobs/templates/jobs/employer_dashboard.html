@@ -3,20 +3,207 @@
 
 {% block title %}Employer Dashboard | SkillBridge{% endblock %}
 
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3f37c9;
+        --accent-color: #4895ef;
+        --light-bg: #f8f9fa;
+        --dark-bg: #212529;
+    }
+
+    .sidebar {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 100;
+        padding: 48px 0 0;
+        background: linear-gradient(135deg, var(--dark-bg), #2b2d42);
+        box-shadow: 2px 0 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s;
+    }
+
+    .sidebar .nav-link {
+        color: rgba(255, 255, 255, 0.8);
+        padding: 0.75rem 1.5rem;
+        margin: 0.25rem 1rem;
+        border-radius: 8px;
+        transition: all 0.3s;
+    }
+
+    .sidebar .nav-link.active {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        font-weight: 500;
+    }
+
+    .sidebar .nav-link:hover:not(.active) {
+        background: rgba(255, 255, 255, 0.05);
+        color: white;
+    }
+
+    .sidebar .nav-link i {
+        width: 24px;
+        text-align: center;
+    }
+
+    .profile-card {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 1rem;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .profile-img {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border: 3px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    main {
+        padding-top: 1.5rem;
+        background-color: var(--light-bg);
+        min-height: 100vh;
+    }
+
+    .section-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+        transition: all 0.3s ease;
+    }
+
+    .section-card:hover {
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .section-card .card-header {
+        background: white;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        border-radius: 12px 12px 0 0 !important;
+        padding: 1.25rem 1.5rem;
+    }
+
+    .notification-card {
+        background: #fff3cd;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .table-responsive {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .bulk-actions {
+        background: var(--light-bg);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        padding: 0.75rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .bulk-actions .form-select,
+    .bulk-actions .form-control {
+        font-size: 0.875rem;
+        height: 32px;
+        line-height: 1.5;
+    }
+
+    .bulk-actions .form-select {
+        width: 150px;
+    }
+
+    .bulk-actions .form-control {
+        width: 200px;
+    }
+
+    .bulk-actions .btn {
+        font-size: 0.875rem;
+        padding: 0.375rem 0.75rem;
+    }
+
+    .tooltip-icon {
+        cursor: help;
+        color: var(--primary-color);
+    }
+
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
+
+    @media (max-width: 768px) {
+        .sidebar {
+            position: static;
+            width: 100%;
+            height: auto;
+            padding: 0;
+        }
+
+        main {
+            padding-top: 1rem;
+        }
+
+        .bulk-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .bulk-actions .form-select,
+        .bulk-actions .form-control {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
     <div class="row">
         <!-- Sidebar -->
-        <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+        <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
             <div class="position-sticky pt-3">
-                <div class="text-center mb-4">
+                <div class="profile-card">
                     <img src="{% if employer.company_logo %}{{ employer.company_logo.url }}{% else %}{% static 'images/default-logo.png' %}{% endif %}" 
-                         class="rounded-circle" width="100" height="100" alt="Company Logo">
-                    <h5 class="mt-3">{{ employer.company_name }}</h5>
+                         class="rounded-circle profile-img" alt="Company Logo">
+                    <h5 class="mt-3 text-white">{{ employer.company_name }}</h5>
                     <p class="text-muted">{{ employer.user.email }}</p>
                 </div>
                 
-                <ul class="nav flex-column">
+                <ul class="nav flex-column mt-3">
                     <li class="nav-item">
                         <a class="nav-link active" href="{% url 'jobs:employer_dashboard' %}">
                             <i class="bi bi-speedometer2 me-2"></i> Dashboard
@@ -25,6 +212,11 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'jobs:post_job' %}">
                             <i class="bi bi-plus-circle me-2"></i> Post Job
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'jobs:employer_interviews' %}">
+                            <i class="bi bi-calendar-event me-2"></i> Interviews
                         </a>
                     </li>
                     <li class="nav-item">
@@ -38,106 +230,162 @@
 
         <!-- Main Content -->
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">Employer Dashboard</h1>
-            </div>
-
-            <!-- Posted Jobs -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5>Posted Jobs</h5>
+            <div class="section-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h2 class="h2 mb-0"><i class="bi bi-speedometer2 me-2"></i>Employer Dashboard</h2>
+                    <a href="{% url 'jobs:post_job' %}" class="btn btn-sm btn-primary">
+                        <i class="bi bi-plus-circle me-1"></i> Post New Job
+                    </a>
                 </div>
                 <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Title</th>
-                                    <th>Location</th>
-                                    <th>Job Type</th>
-                                    <th>Interview Type</th>
-                                    <th>Posted Date</th>
-                                    <th>Deadline</th>
-                                    <th>Applications</th>
-                                    <th>Max Applications</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for job in jobs %}
-                                <tr>
-                                    <td>{{ job.title }}</td>
-                                    <td>{{ job.location }}</td>
-                                    <td>{{ job.get_job_type_display }}</td>
-                                    <td>{{ job.get_interview_type_display }}</td>
-                                    <td>{{ job.posted_date|date:"Y-m-d" }}</td>
-                                    <td>{{ job.application_deadline|date:"Y-m-d H:i"|default:"N/A" }}</td>
-                                    <td>{{ job.applications.count }}</td>
-                                    <td>{{ job.max_applications|default:"N/A" }}</td>
-                                    <td>
-                                        <span class="badge bg-{% if job.is_active %}success{% else %}danger{% endif %}">
-                                            {{ job.is_active|yesno:"Active,Closed" }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <a href="{% url 'jobs:job_detail' job.pk %}" class="btn btn-sm btn-outline-primary">View</a>
-                                        <a href="{% url 'jobs:job_status_update' job.pk %}" class="btn btn-sm btn-outline-warning">Update Status</a>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="10" class="text-muted">No jobs posted yet.</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                    <!-- Notifications -->
+                    {% if notifications %}
+                    <div class="mb-4">
+                        <h5>Notifications</h5>
+                        {% for notification in notifications %}
+                        <div class="notification-card">
+                            <div>
+                                <strong>{{ notification.job.title }}</strong>: {{ notification.message }}
+                                <small class="text-muted">({{ notification.created_at|date:"M d, Y H:i" }})</small>
+                            </div>
+                            <div>
+                                <a href="{% url 'jobs:manage_max_applications' notification.job.pk %}" class="btn btn-sm btn-outline-primary">Manage</a>
+                            </div>
+                        </div>
+                        {% endfor %}
                     </div>
-                </div>
-            </div>
+                    {% endif %}
 
-            <!-- Applications -->
-            <div class="card">
-                <div class="card-header">
-                    <h5>Applications</h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Student</th>
-                                    <th>Job</th>
-                                    <th>Applied Date</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for application in applications %}
-                                <tr>
-                                    <td>{{ application.student.user.username }}</td>
-                                    <td>{{ application.job.title }}</td>
-                                    <td>{{ application.applied_date|date:"Y-m-d" }}</td>
-                                    <td>
-                                        <span class="badge bg-{% if application.status == 'INTERVIEW' %}success{% elif application.status == 'PENDING' %}warning{% elif application.status == 'REJECTED' %}danger{% else %}primary{% endif %}">
-                                            {{ application.get_status_display }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <a href="{% url 'jobs:manage_application' application.pk %}" class="btn btn-sm btn-outline-primary">Manage</a>
-                                        {% if application.status == 'PENDING' %}
-                                        <a href="{% url 'jobs:schedule_interview' application.pk %}" class="btn btn-sm btn-outline-success">Schedule Interview</a>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="5" class="text-muted">No applications yet.</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                    <!-- Posted Jobs -->
+                    <div class="section-card mb-4">
+                        <div class="card-header">
+                            <h5>Posted Jobs</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Title</th>
+                                            <th>Location</th>
+                                            <th>Job Type</th>
+                                            <th>Interview Type</th>
+                                            <th>Posted Date</th>
+                                            <th>Deadline</th>
+                                            <th>Applications</th>
+                                            <th>Max Applications</th>
+                                            <th>Status</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for job in jobs %}
+                                        <tr>
+                                            <td>{{ job.title }}</td>
+                                            <td>{{ job.location }}</td>
+                                            <td>
+                                                <span class="badge bg-{% if job.job_type == 'INT' %}primary{% else %}info{% endif %}">
+                                                    {{ job.get_job_type_display }}
+                                                </span>
+                                            </td>
+                                            <td>{{ job.get_interview_type_display }}</td>
+                                            <td>{{ job.posted_date|date:"Y-m-d" }}</td>
+                                            <td>{{ job.application_deadline|date:"Y-m-d H:i"|default:"N/A" }}</td>
+                                            <td>{{ job.applications.count }}</td>
+                                            <td>{{ job.max_applications|default:"N/A" }}</td>
+                                            <td>
+                                                <span class="badge bg-{% if job.is_active %}success{% else %}danger{% endif %}">
+                                                    {{ job.is_active|yesno:"Active,Closed" }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'jobs:job_detail' job.pk %}" class="btn btn-sm btn-outline-primary me-2">View</a>
+                                                <a href="{% url 'jobs:job_status_update' job.pk %}" class="btn btn-sm btn-outline-warning">Update Status</a>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="10" class="text-muted text-center py-4">
+                                                <i class="bi bi-briefcase fs-1"></i>
+                                                <p class="mt-2 mb-0">No jobs posted yet.</p>
+                                                <a href="{% url 'jobs:post_job' %}" class="btn btn-sm btn-primary mt-2">Post a Job</a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Applications -->
+                    <div class="section-card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5>Applications</h5>
+                            {% if applications %}
+                            <form id="bulk-manage-form" action="{% url 'jobs:bulk_manage_applications' %}" method="POST" class="bulk-actions">
+                                {% csrf_token %}
+                                <div class="d-flex align-items-center gap-2">
+                                    <select name="status" class="form-select" data-bs-toggle="tooltip" title="Select a status to apply to all selected applications">
+                                        <option value="" disabled selected>Select Status</option>
+                                        {% for value, label in status_choices %}
+                                            <option value="{{ value }}">{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <input type="text" name="message" class="form-control" placeholder="Optional message to applicants" data-bs-toggle="tooltip" title="Add a message to send to selected applicants">
+                                    <button type="submit" class="btn btn-primary" data-bs-toggle="tooltip" title="Apply status and message to selected applications">
+                                        <i class="bi bi-check-all me-1"></i> Apply
+                                    </button>
+                                </div>
+                            </form>
+                            {% else %}
+                            <span class="text-muted">No applications to manage</span>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th><input type="checkbox" id="select-all"></th>
+                                            <th>Student</th>
+                                            <th>Job</th>
+                                            <th>Applied Date</th>
+                                            <th>Status</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for application in applications %}
+                                        <tr>
+                                            <td><input type="checkbox" name="application_ids" value="{{ application.pk }}" form="bulk-manage-form"></td>
+                                            <td>{{ application.student.user.username }}</td>
+                                            <td>{{ application.job.title }}</td>
+                                            <td>{{ application.applied_date|date:"Y-m-d" }}</td>
+                                            <td>
+                                                <span class="badge bg-{% if application.status == 'INTERVIEW' %}success{% elif application.status == 'PENDING' %}warning{% elif application.status == 'REJECTED' %}danger{% else %}primary{% endif %}">
+                                                    {{ application.get_status_display }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'jobs:manage_application' application.pk %}" class="btn btn-sm btn-outline-primary me-2">Manage</a>
+                                                {% if application.status == 'PENDING' %}
+                                                <a href="{% url 'jobs:schedule_interview' application.pk %}" class="btn btn-sm btn-outline-success">Schedule Interview</a>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="6" class="text-muted text-center py-4">
+                                                <i class="bi bi-files fs-1"></i>
+                                                <p class="mt-2 mb-0">No applications yet.</p>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -145,45 +393,23 @@
     </div>
 </div>
 
-<style>
-    .sidebar {
-        position: fixed;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        z-index: 100;
-        padding: 48px 0 0;
-        box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
-    }
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 
-    .sidebar .nav-link {
-        font-weight: 500;
-        color: #333;
-        padding: 0.75rem 1rem;
-    }
-
-    .sidebar .nav-link.active {
-        color: #0d6efd;
-    }
-
-    .sidebar .nav-link:hover {
-        color: #0d6efd;
-        background-color: rgba(13, 110, 253, 0.1);
-    }
-
-    main {
-        padding-top: 1.5rem;
-    }
-
-    .card {
-        border: none;
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-    }
-</style>
+    // Handle select-all checkbox
+    const selectAllCheckbox = document.getElementById('select-all');
+    const checkboxes = document.querySelectorAll('input[name="application_ids"]');
+    
+    selectAllCheckbox.addEventListener('change', function() {
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+    });
+});
+</script>
+{% endblock %}
 {% endblock %}
