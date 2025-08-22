@@ -3,6 +3,13 @@
 
 {% block extra_css %}
 <style>
+    :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3f37c9;
+        --accent-color: #4895ef;
+        --light-bg: #f8f9fa;
+    }
+
     /* Hero Section */
     .hero-section {
         background: linear-gradient(135deg, rgba(67, 97, 238, 0.9), rgba(63, 55, 201, 0.9)),
@@ -48,18 +55,46 @@
         background: var(--primary-color);
     }
     
+    /* Job Cards */
+    .job-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        padding: 20px;
+        height: 100%;
+    }
+    
+    .job-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    }
+    
+    .job-card h5 {
+        color: var(--primary-color);
+        margin-bottom: 10px;
+    }
+    
+    .job-card .company-logo {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+    
     /* Category Cards */
     .category-card {
         background: white;
         border-radius: 12px;
         box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         transition: all 0.3s ease;
-        height: 100%;
+        padding: 20px;
+        text-align: center;
     }
     
     .category-card:hover {
-        transform: translateY(-10px);
-        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     }
     
     .category-card h4 {
@@ -72,7 +107,8 @@
         content: '';
         position: absolute;
         bottom: 0;
-        left: 0;
+        left: 50%;
+        transform: translateX(-50%);
         width: 40px;
         height: 2px;
         background: var(--primary-color);
@@ -100,6 +136,11 @@
         font-size: 1.5rem;
         font-weight: bold;
         margin: 0 auto 20px;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
     }
     
     /* Testimonials */
@@ -118,74 +159,57 @@
     }
     
     /* CTA Section */
-.cta-section {
-    background: linear-gradient(135deg, #4361ee, #3a0ca3);
-    padding: 5rem 0;
-    position: relative;
-    overflow: hidden;
-}
-
-.cta-section .btn-light {
-    background-color: white;
-    color: #4361ee; /* Matching the blue gradient */
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-.cta-section .btn-light:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-    background-color: white;
-}
-
-.cta-section .btn-outline-light {
-    border: 2px solid white;
-    color: white;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-.cta-section .btn-outline-light:hover {
-    background-color: rgba(255,255,255,0.1);
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-    color: white;
-}
-
-.text-white-75 {
-    color: rgba(255,255,255,0.85);
-}
-
-/* Optional: Add subtle pattern overlay */
-.cta-section::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image: radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px);
-    background-size: 10px 10px;
-    z-index: 1;
-    opacity: 0.5;
-}
-
-@media (max-width: 768px) {
     .cta-section {
-        padding: 3rem 1rem;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        padding: 5rem 0;
+        position: relative;
+        overflow: hidden;
     }
     
-    .cta-section .btn {
-        width: 100%;
-        margin-bottom: 1rem;
+    .cta-section .btn-light {
+        background-color: white;
+        color: var(--primary-color);
+        font-weight: 600;
+        transition: all 0.3s ease;
     }
     
-    h2.display-4 {
-        font-size: 2.5rem;
+    .cta-section .btn-light:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        background-color: white;
     }
-}
     
-    /* Responsive Adjustments */
+    .cta-section .btn-outline-light {
+        border: 2px solid white;
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .cta-section .btn-outline-light:hover {
+        background-color: rgba(255,255,255,0.1);
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        color: white;
+    }
+    
+    .text-white-75 {
+        color: rgba(255,255,255,0.85);
+    }
+    
+    .cta-section::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px);
+        background-size: 10px 10px;
+        z-index: 1;
+        opacity: 0.5;
+    }
+    
     @media (max-width: 768px) {
         .hero-section {
             padding: 80px 0;
@@ -193,6 +217,19 @@
         
         .hero-content h1 {
             font-size: 2.5rem;
+        }
+        
+        .cta-section {
+            padding: 3rem 1rem;
+        }
+        
+        .cta-section .btn {
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+        
+        .job-card {
+            margin-bottom: 1.5rem;
         }
     }
 </style>
@@ -202,7 +239,7 @@
 <!-- Hero Section -->
 <section class="hero-section">
     <div class="container text-center hero-content">
-        <h1 class="display-3 fw-bold mb-4">Find Your Dream Internship</h1>
+        <h1 class="display-3 fw-bold mb-4">Find Your Dream Internship or Gig</h1>
         <p class="lead mb-5">Connect with top companies and kickstart your career journey</p>
         <div class="d-flex justify-content-center gap-3">
             <a href="{% url 'jobs:job_list' %}" class="btn btn-light btn-lg px-4 py-2 rounded-pill">
@@ -215,122 +252,29 @@
     </div>
 </section>
 
-<!-- Top Categories Section -->
+<!-- Categories Section -->
 <section class="py-5 bg-light">
     <div class="container">
         <div class="text-center mb-5">
-            <h2 class="fw-bold section-title">Top Categories</h2>
-            <p class="text-muted">Explore opportunities in popular fields</p>
+            <h2 class="fw-bold section-title">Explore Opportunities</h2>
+            <p class="text-muted">Discover internships and gigs tailored to your skills</p>
         </div>
-        
         <div class="row g-4">
-            <!-- Category Column 1 -->
-            <div class="col-md-4">
-                <div class="category-card p-4 h-100">
-                    <div class="d-flex align-items-center mb-4">
-                        <div class="bg-primary bg-opacity-10 p-3 rounded me-3">
-                            <i class="bi bi-briefcase text-primary fs-4"></i>
-                        </div>
-                        <h4 class="mb-0">Internships</h4>
-                    </div>
-                    <ul class="list-unstyled">
-                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                            <span>Graphic Designer</span>
-                            <span class="badge bg-primary rounded-pill">292 positions</span>
-                        </li>
-                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                            <span>Web Development</span>
-                            <span class="badge bg-primary rounded-pill">292 positions</span>
-                        </li>
-                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                            <span>Data Science</span>
-                            <span class="badge bg-primary rounded-pill">128 positions</span>
-                        </li>
-                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                            <span>Marketing</span>
-                            <span class="badge bg-primary rounded-pill">87 positions</span>
-                        </li>
-                        <li class="d-flex justify-content-between align-items-center py-2">
-                            <span>UI/UX Design</span>
-                            <span class="badge bg-primary rounded-pill">64 positions</span>
-                        </li>
-                    </ul>
-                    <a href="#" class="btn btn-link text-primary mt-3 ps-0">
-                        View all internships <i class="bi bi-arrow-right"></i>
+            <div class="col-md-6">
+                <div class="category-card">
+                    <h4 class="mb-4">Internships</h4>
+                    <p class="text-muted">Gain hands-on experience with leading companies through structured internship programs.</p>
+                    <a href="{% url 'jobs:job_list' %}?job_type=INT" class="btn btn-outline-primary rounded-pill">
+                        Browse Internships <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>
             </div>
-            
-            <!-- Category Column 2 -->
-            <div class="col-md-4">
-                <div class="category-card p-4 h-100">
-                    <div class="d-flex align-items-center mb-4">
-                        <div class="bg-primary bg-opacity-10 p-3 rounded me-3">
-                            <i class="bi bi-building text-primary fs-4"></i>
-                        </div>
-                        <h4 class="mb-0">Full-time</h4>
-                    </div>
-                    <ul class="list-unstyled">
-                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                            <span>Web Designer</span>
-                            <span class="badge bg-primary rounded-pill">292 positions</span>
-                        </li>
-                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                            <span>Project Management</span>
-                            <span class="badge bg-primary rounded-pill">292 positions</span>
-                        </li>
-                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                            <span>Software Development</span>
-                            <span class="badge bg-primary rounded-pill">292 positions</span>
-                        </li>
-                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                            <span>PHP Programming</span>
-                            <span class="badge bg-primary rounded-pill">292 positions</span>
-                        </li>
-                        <li class="d-flex justify-content-between align-items-center py-2">
-                            <span>SEO</span>
-                            <span class="badge bg-primary rounded-pill">292 positions</span>
-                        </li>
-                    </ul>
-                    <a href="#" class="btn btn-link text-primary mt-3 ps-0">
-                        View all full-time jobs <i class="bi bi-arrow-right"></i>
-                    </a>
-                </div>
-            </div>
-            
-            <!-- Category Column 3 -->
-            <div class="col-md-4">
-                <div class="category-card p-4 h-100">
-                    <div class="d-flex align-items-center mb-4">
-                        <div class="bg-primary bg-opacity-10 p-3 rounded me-3">
-                            <i class="bi bi-lightning-charge text-primary fs-4"></i>
-                        </div>
-                        <h4 class="mb-0">Gigs</h4>
-                    </div>
-                    <ul class="list-unstyled">
-                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                            <span>Email Marketing</span>
-                            <span class="badge bg-primary rounded-pill">292 positions</span>
-                        </li>
-                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                            <span>Content Designer</span>
-                            <span class="badge bg-primary rounded-pill">292 positions</span>
-                        </li>
-                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                            <span>Affiliate Marketing</span>
-                            <span class="badge bg-primary rounded-pill">292 positions</span>
-                        </li>
-                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                            <span>Influencer Marketing</span>
-                            <span class="badge bg-primary rounded-pill">292 positions</span>
-                        </li>
-                        <li class="d-flex justify-content-between align-items-center py-2">
-                            <span>Social Media Marketing</span>
-                            <span class="badge bg-primary rounded-pill">292 positions</span>
-                        </li>
-                    </ul>
-                    <a href="#" class="btn btn-link text-primary mt-3 ps-0">
-                        View all gigs <i class="bi bi-arrow-right"></i>
+            <div class="col-md-6">
+                <div class="category-card">
+                    <h4 class="mb-4">Gigs</h4>
+                    <p class="text-muted">Work on short-term, flexible projects to build your portfolio and earn.</p>
+                    <a href="{% url 'jobs:job_list' %}?job_type=GIG" class="btn btn-outline-primary rounded-pill">
+                        Browse Gigs <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>
             </div>
@@ -338,20 +282,67 @@
     </div>
 </section>
 
-<!-- How It Works Section -->
+<!-- Featured Jobs Section -->
 <section class="py-5">
     <div class="container">
         <div class="text-center mb-5">
+            <h2 class="fw-bold section-title">Featured Jobs</h2>
+            <p class="text-muted">Explore the latest internships and gigs from top employers</p>
+        </div>
+        <div class="row g-4">
+            {% for job in featured_jobs %}
+                <div class="col-md-4">
+                    <div class="job-card">
+                        <div class="d-flex align-items-center mb-3">
+                            {% if job.employer.company_logo %}
+                                <img src="{{ job.employer.company_logo.url }}" class="company-logo me-3" alt="{{ job.employer.company_name }} Logo">
+                            {% else %}
+                                <img src="{% static 'images/default-logo.png' %}" class="company-logo me-3" alt="Default Logo">
+                            {% endif %}
+                            <div>
+                                <h5 class="mb-1">{{ job.title }}</h5>
+                                <small class="text-muted">{{ job.employer.company_name }}</small>
+                            </div>
+                        </div>
+                        <p class="text-muted mb-2">{{ job.description|truncatewords:20 }}</p>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="badge bg-{% if job.job_type == 'INT' %}primary{% else %}info{% endif %}">
+                                {{ job.get_job_type_display }}
+                            </span>
+                            <span class="text-muted small">{{ job.location }}</span>
+                        </div>
+                        <a href="{% url 'jobs:job_detail' job.pk %}" class="btn btn-outline-primary btn-sm w-100 rounded-pill">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12 text-center py-4">
+                    <p class="text-muted">No jobs available at the moment.</p>
+                    <a href="{% url 'jobs:job_list' %}" class="btn btn-primary rounded-pill">Browse All Jobs</a>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-5">
+            <a href="{% url 'jobs:job_list' %}" class="btn btn-primary btn-lg rounded-pill">
+                View All Jobs <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
             <h2 class="fw-bold section-title">How It Works</h2>
-            <p class="text-muted">Simple steps to get your dream internship</p>
+            <p class="text-muted">Simple steps to get your dream internship or gig</p>
         </div>
         
         <div class="row g-4">
             <div class="col-md-4">
                 <div class="step-card text-center">
-                    <div class="step-badge mb-4">
-                        1
-                    </div>
+                    <div class="step-badge mb-4">1</div>
                     <div class="icon-wrapper bg-primary bg-opacity-10 p-3 rounded-circle d-inline-flex mb-3">
                         <i class="bi bi-person-plus text-primary fs-3"></i>
                     </div>
@@ -361,26 +352,22 @@
             </div>
             <div class="col-md-4">
                 <div class="step-card text-center">
-                    <div class="step-badge mb-4">
-                        2
-                    </div>
+                    <div class="step-badge mb-4">2</div>
                     <div class="icon-wrapper bg-primary bg-opacity-10 p-3 rounded-circle d-inline-flex mb-3">
                         <i class="bi bi-search text-primary fs-3"></i>
                     </div>
                     <h4 class="mb-3">Find Opportunities</h4>
-                    <p class="text-muted">Browse and apply for internships that match your skills and interests</p>
+                    <p class="text-muted">Browse and apply for internships and gigs that match your skills</p>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="step-card text-center">
-                    <div class="step-badge mb-4">
-                        3
-                    </div>
+                    <div class="step-badge mb-4">3</div>
                     <div class="icon-wrapper bg-primary bg-opacity-10 p-3 rounded-circle d-inline-flex mb-3">
                         <i class="bi bi-briefcase text-primary fs-3"></i>
                     </div>
                     <h4 class="mb-3">Get Hired</h4>
-                    <p class="text-muted">Complete assessments and interviews to land your dream internship</p>
+                    <p class="text-muted">Complete tasks and interviews to land your dream opportunity</p>
                 </div>
             </div>
         </div>
@@ -394,7 +381,7 @@
 </section>
 
 <!-- Testimonials Section -->
-<section class="py-5 bg-light">
+<section class="py-5">
     <div class="container">
         <div class="text-center mb-5">
             <h2 class="fw-bold section-title">Success Stories</h2>
@@ -411,7 +398,7 @@
                         <i class="bi bi-star-fill"></i>
                         <i class="bi bi-star-fill"></i>
                     </div>
-                    <p class="fst-italic mb-4">"Absolutely thrilled with the platform! Found my dream internship in just 2 weeks. The process was smooth and efficient. The assessment tools helped me showcase my skills effectively."</p>
+                    <p class="fst-italic mb-4">"Found my dream internship in just 2 weeks! The platform’s task-based system helped me showcase my skills effectively."</p>
                     <div class="d-flex align-items-center">
                         <img src="{% static 'images/user1.jpg' %}" class="rounded-circle me-3" width="60" height="60" alt="User">
                         <div>
@@ -433,7 +420,7 @@
                         <i class="bi bi-star-fill"></i>
                         <i class="bi bi-star-fill"></i>
                     </div>
-                    <p class="fst-italic mb-4">"Great talent pool! We hired 3 excellent interns through SkillBridge. The assessment tools helped us find candidates with the right skills quickly. The platform saved us countless hours in the hiring process."</p>
+                    <p class="fst-italic mb-4">"Hired 3 talented interns through SkillBridge. The platform's task management saved us countless hours."</p>
                     <div class="d-flex align-items-center">
                         <img src="{% static 'images/user2.jpg' %}" class="rounded-circle me-3" width="60" height="60" alt="User">
                         <div>
@@ -449,8 +436,6 @@
         </div>
     </div>
 </section>
-
-<!-- Call to Action -->
 
 <!-- Call to Action -->
 <section class="cta-section py-5 position-relative">
@@ -476,10 +461,8 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function(e) {
             e.preventDefault();
-            
             const targetId = this.getAttribute('href');
             if (targetId === '#') return;
-            
             const targetElement = document.querySelector(targetId);
             if (targetElement) {
                 window.scrollTo({
@@ -490,14 +473,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Animate elements when they come into view
+    // Animate elements on scroll
     const animateOnScroll = function() {
-        const elements = document.querySelectorAll('.category-card, .step-card, .testimonial-card');
-        
+        const elements = document.querySelectorAll('.job-card, .category-card, .step-card, .testimonial-card');
         elements.forEach(element => {
             const elementPosition = element.getBoundingClientRect().top;
             const screenPosition = window.innerHeight / 1.2;
-            
             if (elementPosition < screenPosition) {
                 element.style.opacity = '1';
                 element.style.transform = 'translateY(0)';
@@ -505,15 +486,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     };
     
-    // Set initial state for animation
-    document.querySelectorAll('.category-card, .step-card, .testimonial-card').forEach(el => {
+    // Set initial animation state
+    document.querySelectorAll('.job-card, .category-card, .step-card, .testimonial-card').forEach(el => {
         el.style.opacity = '0';
         el.style.transform = 'translateY(20px)';
         el.style.transition = 'all 0.6s ease';
     });
     
     window.addEventListener('scroll', animateOnScroll);
-    animateOnScroll(); // Run once on load
+    animateOnScroll();
 });
 </script>
 {% endblock %}

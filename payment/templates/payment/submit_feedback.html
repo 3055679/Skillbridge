@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Submit Feedback | SkillBridge{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3f37c9;
+        --accent-color: #4895ef;
+        --light-bg: #f8f9fa;
+    }
+    .card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+    .card:hover {
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    }
+    .card-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border-radius: 12px 12px 0 0;
+        padding: 1.5rem;
+    }
+    .form-group label {
+        font-weight: 600;
+        color: #495057;
+    }
+    .form-control, .form-select {
+        border-radius: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="card">
+        <div class="card-header">
+            <h2>Submit Feedback for {{ task.application.job.title }}</h2>
+            <p class="mb-0">Student: {{ task.application.student.user.username }}</p>
+        </div>
+        <div class="card-body">
+            {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li class="alert alert-{{ message.tags }}">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group mb-3">
+                    {{ form.task_given.label_tag }}
+                    {{ form.task_given }}
+                </div>
+                <div class="form-group mb-3">
+                    {{ form.performance.label_tag }}
+                    {{ form.performance }}
+                </div>
+                <div class="form-group mb-3">
+                    {{ form.rating.label_tag }}
+                    {{ form.rating }}
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary" data-bs-toggle="tooltip" title="Submit feedback and mark task as complete">
+                        <i class="bi bi-check-circle me-1"></i> Submit Feedback
+                    </button>
+                    <a href="{% url 'jobs:employer_dashboard' %}" class="btn btn-outline-secondary" data-bs-toggle="tooltip" title="Return to dashboard">
+                        <i class="bi bi-arrow-left-circle me-1"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+});
+</script>
+{% endblock %}
+{% endblock %}

@@ -12,4 +12,8 @@ urlpatterns = [
     # If you want /accounts/ to redirect to home:
     # path('accounts/', RedirectView.as_view(url='/', permanent=True)),
     path('jobs/', include('jobs.urls', namespace='jobs')),
+    path('assessments/', include('assessments.urls')),
+    path('payment/', include('payment.urls')),
+    path('about/', views.about, name='about'),
+    path('contact/', views.contact, name='contact'),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

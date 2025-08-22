@@ -1,8 +1,30 @@
 {% extends "base.html" %}
-{% block title %}Saved Jobs | SkillBridge{% endblock %}
+{% load static %}
+{% block title %}Saved Jobs{% endblock %}
 {% block content %}
-<div class="container mt-5">
-    <h2>Saved Jobs</h2>
-    <p>Placeholder for saved jobs.</p>
+<div class="container my-4">
+  <h3 class="mb-3">Saved Jobs</h3>
+  {% if saved %}
+    <div class="row g-3">
+    {% for s in saved %}
+      <div class="col-md-6">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5 class="card-title">{{ s.job.title }}</h5>
+            <p class="card-text text-muted mb-1">{{ s.job.employer.company_name }}</p>
+            <p class="small text-muted mb-2">{{ s.job.location }} • {{ s.job.get_job_type_display }}</p>
+            <a href="{% url 'jobs:job_detail' s.job.id %}" class="btn btn-sm btn-outline-primary">View</a>
+            <form method="post" action="{% url 'jobs:save_job' s.job.id %}" class="d-inline">
+              {% csrf_token %}
+              <button class="btn btn-sm btn-outline-danger">Remove</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted">No saved jobs yet. Click the <i class="bi bi-bookmark"></i> icon on a job to save it.</p>
+  {% endif %}
 </div>
 {% endblock %}

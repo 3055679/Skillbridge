@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Assessment Reports | SkillBridge{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3f37c9;
+        --accent-color: #4895ef;
+        --light-bg: #f8f9fa;
+    }
+
+    .card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .card:hover {
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border-radius: 12px 12px 0 0;
+        padding: 1.5rem;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table th {
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    .badge {
+        font-size: 0.9rem;
+        padding: 0.5em 1em;
+    }
+
+    .btn-outline-secondary {
+        border-color: #6c757d;
+        color: #6c757d;
+    }
+
+    .btn-outline-secondary:hover {
+        background-color: #6c757d;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="card">
+        <div class="card-header">
+            <h2>Assessment Reports</h2>
+            <p class="mb-0">Employer: {{ employer.company_name }}</p>
+        </div>
+        <div class="card-body">
+            {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li class="alert alert-{{ message.tags }}">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            {% if reports %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Student</th>
+                                <th>Job</th>
+                                <th>Submitted Date</th>
+                                <th>Score</th>
+                                <th>Skills</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for report in reports %}
+                            <tr>
+                                <td>{{ report.assessment.application.student.user.username }}</td>
+                                <td>{{ report.assessment.application.job.title }}</td>
+                                <td>{{ report.assessment.submitted_at|date:"M d, Y H:i" }}</td>
+                                <td>{{ report.total_score|floatformat:1 }}</td>
+                                <td>
+                                    {% for skill, score in report.per_skill.items %}
+                                        <span class="badge bg-info text-dark">{{ skill }}: {{ score|floatformat:1 }}</span>
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'jobs:application_detail' report.assessment.application.pk %}" 
+                                       class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-eye me-1"></i> View Application
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-muted text-center py-4">
+                                    <i class="bi bi-clipboard-data fs-1"></i>
+                                    <p class="mt-2 mb-0">No assessment reports available.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-muted text-center py-4">
+                    <i class="bi bi-clipboard-data fs-1"></i>
+                    <p class="mt-2 mb-0">No assessment reports available.</p>
+                </div>
+            {% endif %}
+            <div class="mt-4">
+                <a href="{% url 'jobs:employer_dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left-circle me-1"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

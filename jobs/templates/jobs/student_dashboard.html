@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% block messages %}{% endblock %}  {# suppress global alerts for this page #}
 
 {% block title %}Student Dashboard | SkillBridge{% endblock %}
 
@@ -210,6 +211,32 @@
             padding-top: 1rem;
         }
     }
+
+        /* Ensure navbar stays above the sidebar */
+    .navbar { z-index: 1030; position: sticky; top: 0; } /* safe even if already fixed-top */
+
+    /* Sidebar lives below the navbar and scrolls */
+    #sidebar {
+        position: fixed;
+        top: var(--navbar-h, 56px);
+        left: 0;
+        width: var(--sidebar-w);
+        height: calc(100vh - var(--navbar-h, 56px));
+        overflow-y: auto;
+        z-index: 1020; /* below navbar */
+        background: inherit; /* keep your existing gradient/styles */
+    }
+        /* Ensure nav-link text is visible */
+    .nav-link {
+        color: #333 !important; /* Dark color for visibility */
+        font-size: 1rem;
+        padding: 10px 15px;
+        transition: color 0.2s ease-in-out;
+    }
+
+    .nav-link:hover {
+        color: #007bff !important; /* Highlight on hover for better UX */
+    }
 </style>
 {% endblock %}
 
@@ -220,8 +247,9 @@
         <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
             <div class="position-sticky pt-3">
                 <div class="profile-card">
-                    <img src="{% if student.profile_picture %}{{ student.profile_picture.url }}{% else %}{% static 'images/default-profile.png' %}{% endif %}" 
-                         class="rounded-circle profile-img" alt="Profile">
+                    <!-- <img src="{% if student.profile_picture %}{{ student.profile_picture.url }}{% else %}{% static 'images/default-profile.png' %}{% endif %}"  -->
+                     <img src="{{ sidebar_profile_image_url }}" class="rounded-circle profile-img" alt="Profile">
+                         
                     <h5 class="mt-3 text-white">{{ student.first_name }} {{ student.last_name }}</h5>
                     <p class="text-muted">{{ student.university }}</p>
                     
@@ -264,6 +292,11 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{% url 'payment:task_submissions' %}">
+                            <i class="bi bi-files me-2"></i> Task Submissions
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{% url 'jobs:community' %}">
                             <i class="bi bi-people me-2"></i> Community
                         </a>
@@ -284,13 +317,9 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <h1 class="h3 mb-0"><i class="bi bi-speedometer2 text-primary me-2"></i> Dashboard Overview</h1>
                     <div>
-                        <button type="button" class="btn btn-sm btn-outline-primary me-2">
-                            <i class="bi bi-share me-1"></i> Share
-                        </button>
+                        
                         <div class="btn-group">
-                            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
-                                <i class="bi bi-calendar me-1"></i> This Week
-                            </button>
+                        
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" href="#">Today</a></li>
                                 <li><a class="dropdown-item" href="#">This Week</a></li>
@@ -371,6 +400,97 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Tasks Section -->
+            <div class="section-card" id="tasks">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-files me-2"></i> Assigned Tasks</h5>
+                    <a href="{% url 'payment:task_submissions' %}" class="btn btn-sm btn-outline-primary">
+                        View All <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                <div class="card-body scrollable-section">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Job</th>
+                                    <th>Task Description</th>
+                                    <th>Due Date</th>
+                                    <th>Status</th>
+                                    <th>Feedback</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for assignment in task_assignments %}
+                                <tr>
+                                    <td>{{ assignment.application.job.title }}</td>
+                                    <td>{{ assignment.task_description|truncatewords:20 }}</td>
+                                    <td>{{ assignment.due_date|date:"M d, Y"|default:"N/A" }}</td>
+                                    <td>
+                                        {% if assignment.completed %}
+                                            <span class="badge bg-success">Completed</span>
+                                        {% elif assignment.submission %}
+                                            <span class="badge bg-warning">Submitted</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if assignment.feedback %}
+                                            Rating: {{ assignment.feedback.rating }}/5<br>
+                                            {{ assignment.feedback.performance|truncatewords:20 }}
+                                        {% else %}
+                                            <span class="text-muted">No feedback yet</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if not assignment.submission %}
+                                            <a href="{% url 'payment:submit_task' assignment.pk %}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Submit your work for this task">
+                                                <i class="bi bi-upload me-1"></i> Submit Task
+                                            </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-4 text-muted">
+                                        <i class="bi bi-files fs-1"></i>
+                                        <p class="mt-2 mb-0">No tasks assigned yet</p>
+                                        <a href="{% url 'jobs:job_list' %}" class="btn btn-sm btn-primary mt-2">
+                                            Browse Jobs
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Earnings Section -->
+            <div class="section-card">
+                <div class="card-header">
+                    <h5><i class="bi bi-wallet me-2"></i> Earnings</h5>
+                </div>
+                <div class="card-body">
+                    <p>Total Available: ${{ total_earnings|floatformat:2 }}</p>
+                    {% if total_earnings > 0 %}
+                        <a href="{% url 'payment:withdraw_earnings' %}" class="btn btn-primary" data-bs-toggle="tooltip" title="Withdraw your available earnings">
+                            <i class="bi bi-wallet me-1"></i> Withdraw Earnings
+                        </a>
+                    {% else %}
+                        <p class="text-muted">No earnings available.</p>
+                    {% endif %}
+                    {% if not request.user.studentprofile.stripe_account_id %}
+                        <a href="{% url 'payment:stripe_connect_onboarding' %}" class="btn btn-outline-primary mt-2" data-bs-toggle="tooltip" title="Set up your Stripe account to receive payments">
+                            <i class="bi bi-bank me-1"></i> Set Up Payment Account
+                        </a>
+                    {% endif %}
                 </div>
             </div>
 
@@ -526,9 +646,12 @@
                                         <span class="badge bg-{% if job.job_type == 'INT' %}success{% elif job.job_type == 'FT' %}primary{% else %}warning{% endif %}">
                                             {{ job.get_job_type_display }}
                                         </span>
-                                        <a href="{% url 'jobs:save_job' job.pk %}" class="btn btn-sm btn-outline-secondary">
-                                            <i class="bi bi-bookmark{% if job in saved_jobs %}-fill{% endif %}"></i>
-                                        </a>
+                                        <form method="post" action="{% url 'jobs:save_job' job.pk %}" class="save-job-form d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary" title="{% if job.id in saved_job_ids %}Unsave{% else %}Save{% endif %}">
+                                                <i class="bi {% if job.id in saved_job_ids %}bi-bookmark-fill{% else %}bi-bookmark{% endif %}"></i>
+                                            </button>
+                                        </form>
                                     </div>
                                     
                                     <h5 class="card-title">{{ job.title }}</h5>
@@ -630,6 +753,43 @@ document.addEventListener('DOMContentLoaded', function() {
             this.style.boxShadow = '';
         });
     });
+
+    // Initialize tooltips
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.save-job-form').forEach(form => {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const csrf = form.querySelector('input[name=csrfmiddlewaretoken]').value;
+            const res = await fetch(form.action, {
+                method: 'POST',
+                headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrf}
+            });
+            if (!res.ok) return;
+            const data = await res.json();
+            const icon = form.querySelector('i');
+            if (data.status === 'saved') {
+                icon.classList.remove('bi-bookmark');
+                icon.classList.add('bi-bookmark-fill');
+            } else {
+                icon.classList.remove('bi-bookmark-fill');
+                icon.classList.add('bi-bookmark');
+            }
+        });
+    });
+});
+
+(function setNavbarHeightVar(){
+  function setVar(){
+    const nav = document.querySelector('.navbar');
+    const h = nav ? nav.offsetHeight : 56; // fallback
+    document.documentElement.style.setProperty('--navbar-h', h + 'px');
+  }
+  document.addEventListener('DOMContentLoaded', setVar);
+  window.addEventListener('resize', setVar);
+})();
 </script>
 {% endblock %}

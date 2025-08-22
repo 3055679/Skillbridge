@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'jobs', 
     'crispy_forms',
     'crispy_bootstrap5',
+    'assessments',
+    'payment',
 ]
 
 MIDDLEWARE = [
@@ -83,12 +85,15 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'jobs.context_processors.user_ui_settings',
             ],
         },
     },
 ]
 
 WSGI_APPLICATION = 'skillbridge.wsgi.application'
+
+BASE_URL = "http://localhost:8000"
 
 
 # Database
@@ -157,10 +162,19 @@ AUTH_USER_MODEL = 'accounts.User'
 AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
 
 # Email settings (for development)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'no-reply@skillbridge.com'
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# DEFAULT_FROM_EMAIL = 'no-reply@skillbridge.com'
 # In production, use:
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = "skillbridge.careers25@gmail.com"     # your Gmail address
+EMAIL_HOST_PASSWORD = "hnkf oxin efys nani" # the 16-char app password from Google
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'dashboard'  # We'll create different dashboards based on user type
@@ -172,6 +186,16 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 ADMIN_URL='/admin/'
+
+SESSION_COOKIE_SAMESITE = 'Lax'  # Default, prevents cross-site issues
+SESSION_COOKIE_DOMAIN = None  # No subdomain sharing
+
+SESSION_COOKIE_AGE = 3600  # 1 hour (default is 1200 seconds or 20 minutes)
+SESSION_SAVE_EVERY_REQUEST = True  # Refresh session on every request
+
+
+STRIPE_SECRET_KEY = 'sk_test_51RwPzTLInMNaINTdWOlRbL7MydnZhSxJVhHZwglELSEnvIWXBUuR5inc7WGyNDaUAaFYT5110gs8lRekSE6YThR400cgHIAXpu'  # From https://dashboard.stripe.com/test/apikeys
+STRIPE_PUBLISHABLE_KEY = 'pk_test_51RwPzTLInMNaINTdPDNQks8iV32RK6ofMUa60TBqlN5WEXcSyRXTgkAefF4FHM4wDACHm3Pq87AgsUUrkVkdbwYb00yn7g6N62'
 
 # GOOGLE_MAPS_API_KEY = 'YOUR_GOOGLE_MAPS_API_KEY'  # Replace with your actual API key
 
@@ -190,6 +214,12 @@ LOGGING = {
             'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': True,
+        },
+    },
+    'loggers': {
+        'assessments.views_take': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
         },
     },
 }

@@ -5,41 +5,155 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h2>Application Details</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+        <h2 class="mb-0">Application Details</h2>
+        <a href="{% url 'jobs:my_applications' %}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Applications
+        </a>
+    </div>
+
     {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-        {% endfor %}
+        <div class="mb-4">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
     {% endif %}
 
     {% if application %}
-        <div class="card mb-3">
-            <div class="card-header">
-                Application for {{ application.job.title }}
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-gradient text-white" style="background: linear-gradient(135deg, #4361ee, #3a0ca3);">
+                <h5 class="mb-0"><i class="bi bi-briefcase me-2"></i>Application for {{ application.job.title }}</h5>
             </div>
             <div class="card-body">
-                <h5 class="card-title">Details</h5>
-                <p class="card-text"><strong>Student:</strong> {{ application.student.user.username }}</p>
-                <p class="card-text"><strong>Job Title:</strong> {{ application.job.title }}</p>
-                <p class="card-text"><strong>Applied Date:</strong> {{ application.applied_date|date:"Y-m-d H:i" }}</p>
-                <p class="card-text"><strong>Status:</strong> {{ application.get_status_display }}</p>
+                <h5 class="section-title">Details</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <p class="mb-1"><strong>Student:</strong> <span class="text-muted">{{ application.student.user.get_full_name|default:application.student.user.username }}</span></p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <p class="mb-1"><strong>Job Title:</strong> <span class="text-muted">{{ application.job.title }}</span></p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <p class="mb-1"><strong>Company:</strong> <span class="text-muted">{{ application.job.employer.company_name }}</span></p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <p class="mb-1"><strong>Applied Date:</strong> <span class="text-muted">{{ application.applied_date|date:"Y-m-d H:i" }}</span></p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <p class="mb-1"><strong>Status:</strong> 
+                            <span class="badge bg-{% if application.status == 'INTERVIEW' %}success{% elif application.status == 'PENDING' %}warning{% elif application.status == 'REJECTED' %}danger{% elif application.status == 'WITHDRAWN' %}secondary{% else %}primary{% endif %}">
+                                {{ application.get_status_display }}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+
                 {% if application.cover_letter %}
-                    <p class="card-text"><strong>Cover Letter:</strong></p>
-                    <div class="bg-light p-2 rounded">{{ application.cover_letter|linebreaks }}</div>
+                    <h5 class="section-title mt-4">Cover Letter</h5>
+                    <div class="bg-light p-3 rounded border">{{ application.cover_letter|linebreaks }}</div>
                 {% endif %}
                 {% if application.resume %}
-                    <p class="card-text"><strong>Resume:</strong> <a href="{{ application.resume.url }}" target="_blank">Download</a></p>
+                    <h5 class="section-title mt-4">Resume</h5>
+                    <p><a href="{{ application.resume.url }}" target="_blank" class="btn btn-outline-primary btn-sm"><i class="bi bi-download me-2"></i>Download Resume</a></p>
+                {% endif %}
+
+                {% if user.is_employer and application.job.employer.user == user %}
+                    <div class="mt-4">
+                        <a href="{% url 'jobs:manage_application' application.id %}" class="btn btn-primary">
+                            <i class="bi bi-gear me-2"></i>Manage Application
+                        </a>
+                    </div>
+                {% elif user.is_student and application.student.user == user %}
+                    <p class="text-muted mt-4"><i class="bi bi-info-circle me-2"></i>This is your application. Check status updates here.</p>
                 {% endif %}
             </div>
         </div>
 
-        {% if user.is_employer and application.job.employer.user == user %}
-            <a href="{% url 'jobs:manage_application' application.id %}" class="btn btn-primary">Manage Application</a>
-        {% elif user.is_student and application.student.user == user %}
-            <p class="text-muted">This is your application. Check status updates here.</p>
+        {% if assessment %}
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-gradient text-white" style="background: linear-gradient(135deg, #4361ee, #3a0ca3);">
+                <h5 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>Assessment 
+                    <span class="badge bg-light text-dark ms-2">{{ assessment.status|title }}</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-3"><strong>Time Limit:</strong> <span class="text-muted">{{ assessment.duration_minutes }} minutes</span></p>
+
+                {% if assessment.status == "invited" or assessment.status == "started" %}
+                    <a class="btn btn-primary" href="{% url 'assessments:assessment_take' assessment.token %}">
+                        <i class="bi bi-play-circle me-2"></i>
+                        {% if assessment.status == "invited" %}Start Assessment{% else %}Resume Assessment{% endif %}
+                    </a>
+                {% elif assessment.status == "submitted" %}
+                    <p class="mb-2 text-muted"><i class="bi bi-hourglass-split me-2"></i>Assessment submitted. Awaiting results.</p>
+                {% elif assessment.status == "scored" and report %}
+                    <a class="btn btn-success" href="{% url 'assessments:assessment_take' assessment.token %}">
+                        <i class="bi bi-eye me-2"></i>View Assessment (read-only)
+                    </a>
+                    <div class="mt-3">
+                        <strong>Total Score:</strong> <span class="text-muted">{{ report.total_score|floatformat:1 }}</span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
         {% endif %}
     {% else %}
-        <p class="text-danger">Application not found.</p>
+        <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>Application not found.
+        </div>
     {% endif %}
 </div>
+
+<style>
+    .card {
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-radius: 12px;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+    }
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #3a0ca3;
+        margin-bottom: 1rem;
+    }
+    .card-header {
+        border-radius: 12px 12px 0 0;
+    }
+    .badge {
+        font-size: 0.9rem;
+        padding: 0.4em 0.8em;
+    }
+    .btn {
+        border-radius: 8px;
+    }
+    .alert {
+        border-radius: 8px;
+    }
+    .bg-light {
+        background-color: #f8f9fa !important;
+    }
+</style>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+
+    // Enable alert dismissal
+    const alertList = document.querySelectorAll('.alert-dismissible');
+    alertList.forEach(alert => new bootstrap.Alert(alert));
+});
+</script>
+{% endblock %}
 {% endblock %}

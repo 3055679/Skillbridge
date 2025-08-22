@@ -1,3 +1,4 @@
+import re
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm, PasswordChangeForm, PasswordResetForm
 from django.forms import ModelForm, inlineformset_factory
@@ -12,9 +13,13 @@ class StudentSignUpForm(UserCreationForm):
     last_name = forms.CharField(max_length=100, required=True)
     personal_email = forms.EmailField(required=True)
     phone_number = forms.CharField(
-        max_length=17,
+        max_length=13,
         required=True,
-        validators=[RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Phone number must be entered in the format: '+999999999'.")]
+        label='Phone Number',
+        validators=[RegexValidator(
+        regex=r'^\+\d{12}$',
+        message="Phone number must be in the format: '+CCXXXXXXXXXX' (2-digit country code + 10-digit number)."
+    )]
     )
     country = forms.CharField(max_length=100, required=True)
     university = forms.CharField(max_length=200, required=True)
@@ -44,6 +49,8 @@ class StudentSignUpForm(UserCreationForm):
             self.fields['student_id_document'].required = False
             self.fields['password1'].required = False
             self.fields['password2'].required = False
+            self.fields['password1'].validators.append(PasswordValidator.validate_password)
+            self.fields['password2'].validators.append(PasswordValidator.validate_password)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -57,15 +64,32 @@ class StudentSignUpForm(UserCreationForm):
         if university_email and User.objects.filter(email=university_email).exists():
             raise ValidationError("This university email is already registered. Please use a different email or log in.")
 
-        # Existing validations
+        # # Existing validations
+        # if has_university_email and not university_email:
+        #     raise ValidationError("Please provide a university email if you selected that option.")
+        # if not has_university_email and not cleaned_data.get('student_id_document'):
+        #     raise ValidationError("Please upload a student ID document if you do not have a university email.")
+        # if university_email and not (university_email.endswith('.edu') or '@student.gla.ac.uk' in university_email):
+        #     raise ValidationError("Please provide a valid .edu or @student.gla.ac.uk email address.")
+
+        
+        # Validate university email
         if has_university_email and not university_email:
             raise ValidationError("Please provide a university email if you selected that option.")
+        if university_email and not (
+            university_email.endswith('.edu') or 
+            university_email.endswith('.ac.uk') or 
+            '@student.gla.ac.uk' in university_email
+        ):
+            raise ValidationError("University email must end with .edu, .ac.uk, or be a valid university domain (e.g., @student.gla.ac.uk).")
+
+        # Validate student ID requirement
         if not has_university_email and not cleaned_data.get('student_id_document'):
             raise ValidationError("Please upload a student ID document if you do not have a university email.")
-        if university_email and not (university_email.endswith('.edu') or '@student.gla.ac.uk' in university_email):
-            raise ValidationError("Please provide a valid .edu or @student.gla.ac.uk email address.")
         
         return cleaned_data
+    
+
 
 # class EmployerSignUpForm(UserCreationForm):
 #     company_name = forms.CharField(max_length=200, required=True)
@@ -92,15 +116,24 @@ class EmployerSignUpForm(UserCreationForm):
     company_name = forms.CharField(max_length=200, required=True)
     email = forms.EmailField(required=True)
     phone_number = forms.CharField(
-        max_length=17,
+        max_length=13,
         required=True,
-        validators=[RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Phone number must be entered in the format: '+999999999'.")]
+        label='Phone Number',
+        validators=[RegexValidator(
+        regex=r'^\+\d{12}$',
+        message="Phone number must be in the format: '+CCXXXXXXXXXX' (2-digit country code + 10-digit number)."
+    )]
     )
     country = forms.CharField(max_length=100, required=True)
 
     class Meta:
         model = User
         fields = ('username', 'email', 'phone_number', 'country', 'company_name', 'password1', 'password2')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['password1'].validators.append(PasswordValidator.validate_password)
+        self.fields['password2'].validators.append(PasswordValidator.validate_password)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -153,6 +186,18 @@ class StudentProfileForm(ModelForm):
             'country': forms.TextInput(attrs={'required': True}),
         }
 
+        # def clean_profile_picture(self):
+        #     profile_picture = self.cleaned_data.get('profile_picture')
+        #     if profile_picture and profile_picture.size > 5 * 1024 * 1024:  # 5MB limit
+        #         raise forms.ValidationError("Profile picture size should not exceed 5MB.")
+        #     return profile_picture
+    
+        # def clean_resume(self):
+        #     resume = self.cleaned_data.get('resume')
+        #     if resume and resume.size > 10 * 1024 * 1024:  # 10MB limit
+        #         raise forms.ValidationError("Resume size should not exceed 10MB.")
+        #     return resume
+
 class EducationForm(ModelForm):
     class Meta:
         model = Education
@@ -164,6 +209,16 @@ class EducationForm(ModelForm):
             'start_year': forms.NumberInput(attrs={'required': True}),
             'end_year': forms.NumberInput(attrs={'required': False}),
         }
+
+        # def clean(self):
+        #     cleaned_data = super().clean()
+        #     currently_studying = cleaned_data.get('currently_studying')
+        #     end_year = cleaned_data.get('end_year')
+        #     if not currently_studying and not end_year:
+        #         raise forms.ValidationError("End year is required if not currently studying.")
+        #     if end_year and currently_studying:
+        #         cleaned_data['end_year'] = None
+        #     return cleaned_data
 
 class ExperienceForm(ModelForm):
     class Meta:
@@ -177,6 +232,16 @@ class ExperienceForm(ModelForm):
             'document': forms.FileInput(attrs={'required': False}),
         }
 
+        # def clean(self):
+        #     cleaned_data = super().clean()
+        #     currently_working = cleaned_data.get('currently_working')
+        #     end_date = cleaned_data.get('end_date')
+        #     if not currently_working and not end_date:
+        #         raise forms.ValidationError("End date is required if not currently working.")
+        #     if end_date and currently_working:
+        #         cleaned_data['end_date'] = None
+        #     return cleaned_data
+
 class PortfolioForm(ModelForm):
     class Meta:
         model = PortfolioItem
@@ -188,6 +253,16 @@ class PortfolioForm(ModelForm):
             'media_type': forms.Select(attrs={'required': True}),
         }
 
+        # def clean(self):
+        #     cleaned_data = super().clean()
+        #     media = cleaned_data.get('media')
+        #     media_type = cleaned_data.get('media_type')
+        #     if media and not media_type:
+        #         raise forms.ValidationError("Please select a media type (Image or Video).")
+        #     if media_type and not media:
+        #         raise forms.ValidationError("Please upload a file for the selected media type.")
+        #     return cleaned_data
+
 EducationFormSet = inlineformset_factory(StudentProfile, Education, form=EducationForm, extra=1, can_delete=True)
 ExperienceFormSet = inlineformset_factory(StudentProfile, Experience, form=ExperienceForm, extra=1, can_delete=True)
 PortfolioFormSet = inlineformset_factory(StudentProfile, PortfolioItem, form=PortfolioForm, extra=1, can_delete=True)
@@ -197,6 +272,8 @@ class CustomPasswordChangeForm(PasswordChangeForm):
         super().__init__(*args, **kwargs)
         for field in self.fields:
             self.fields[field].widget.attrs.update({'class': 'form-control'})
+            self.fields['new_password1'].validators.append(PasswordValidator.validate_password)
+            self.fields['new_password2'].validators.append(PasswordValidator.validate_password)
 
 # class CustomPasswordResetForm(PasswordResetForm):
 #     username = forms.CharField(max_length=150, required=True)
@@ -275,3 +352,15 @@ class CustomPasswordResetForm(PasswordResetForm):
         if user and user.is_active:
             return [user]
         return []
+    
+class PasswordValidator:
+    @staticmethod
+    def validate_password(value):
+        if len(value) < 8 or len(value) > 12:
+            raise ValidationError("Password must be between 8 and 12 characters long.")
+        if not re.search(r'[A-Za-z]', value):
+            raise ValidationError("Password must contain at least one letter.")
+        if not re.search(r'\d', value):
+            raise ValidationError("Password must contain at least one number.")
+        if not re.search(r'[!@#$%^&*]', value):
+            raise ValidationError("Password must contain at least one special character (!@#$%^&*).")

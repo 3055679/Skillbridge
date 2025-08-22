@@ -1,8 +1,34 @@
 {% extends "base.html" %}
-{% block title %}Settings | SkillBridge{% endblock %}
+{% load crispy_forms_tags %}
+{% block title %}Settings{% endblock %}
 {% block content %}
-<div class="container mt-5">
-    <h2>Settings</h2>
-    <p>Placeholder for settings.</p>
+<div class="container my-4">
+  <h3>Settings</h3>
+  <form method="post">
+    {% csrf_token %}
+    <div class="row">
+      <div class="col-md-6">
+        <fieldset class="border rounded p-3 mb-3">
+          <legend class="float-none w-auto px-2 small text-muted">Notifications</legend>
+          {{ form.notify_job_updates|as_crispy_field }}
+          {{ form.notify_interviews|as_crispy_field }}
+          {{ form.notify_community_replies|as_crispy_field }}
+          {{ form.weekly_digest|as_crispy_field }}
+        </fieldset>
+      </div>
+      <div class="col-md-6">
+        <fieldset class="border rounded p-3 mb-3">
+          <legend class="float-none w-auto px-2 small text-muted">Privacy & Display</legend>
+          {{ form.show_profile_to_employers|as_crispy_field }}
+          {{ form.show_resume_to_employers|as_crispy_field }}
+          {{ form.dark_mode|as_crispy_field }}
+        </fieldset>
+      </div>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-primary">Save changes</button>
+      <a href="{% url 'jobs:student_dashboard' %}" class="btn btn-outline-secondary">Back</a>
+    </div>
+  </form>
 </div>
 {% endblock %}

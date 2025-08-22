@@ -16,13 +16,17 @@ class UserProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='userprofile')
     email_verification_token = models.UUIDField(blank=True, null=True)
     email_verified = models.BooleanField(default=False)
+    personal_email_verification_token = models.UUIDField(null=True, blank=True)
 
 class EmployerProfile(models.Model):
     # user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, primary_key=True)
     company_name = models.CharField(max_length=200)
     email = models.EmailField(unique=True)
-    phone_regex = RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Phone number must be entered in the format: '+999999999'.")
+    phone_regex = RegexValidator(
+    regex=r'^\+\d{12}$',
+    message="Phone number must be in the format: '+CCXXXXXXXXXX' (2-digit country code + 10-digit number)."
+)
     phone_number = models.CharField(validators=[phone_regex], max_length=17)
     country = models.CharField(max_length=100)
     company_logo = models.ImageField(upload_to='company_logos/', blank=True, null=True)
@@ -63,11 +67,16 @@ class StudentProfile(models.Model):
         ('FULL', 'Full-time'), ('PART', 'Part-time'), ('FLEX', 'Flexible')
     ], blank=True, null=True)
     student_id_document = models.FileField(upload_to='student_ids/', blank=True, null=True)
-    phone_regex = RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Phone number must be entered in the format: '+999999999'.")
-    phone_number = models.CharField(validators=[phone_regex], max_length=17, blank=True, null=True)
+    phone_regex = RegexValidator(
+    regex=r'^\+\d{12}$',
+    message="Phone number must be in the format: '+CCXXXXXXXXXX' (2-digit country code + 10-digit number)."
+)
+    phone_number = models.CharField(validators=[phone_regex], max_length=13, blank=True, null=True)
     university = models.CharField(max_length=200, blank=True, null=True)
     country = models.CharField(max_length=100, blank=True, null=True)
     student_id_verified = models.BooleanField(default=False)
+    stripe_account_id = models.CharField(max_length=255, blank=True, help_text="Stripe Connect account ID for payments")
+    is_approved = models.BooleanField(default=False)
     
     def __str__(self): return self.user.username
 

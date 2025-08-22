@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Task Submissions | SkillBridge{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3f37c9;
+        --accent-color: #4895ef;
+        --light-bg: #f8f9fa;
+        --dark-bg: #212529;
+    }
+
+    main {
+        padding-top: 1.5rem;
+        background-color: var(--light-bg);
+        min-height: 100vh;
+    }
+
+    .section-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+        transition: all 0.3s ease;
+    }
+
+    .section-card:hover {
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .section-card .card-header {
+        background: linear-gradient(135deg, #4361ee, #3a0ca3);
+        color: white;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        border-radius: 12px 12px 0 0 !important;
+        padding: 1.25rem 1.5rem;
+    }
+
+    .table-responsive {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .badge {
+        font-size: 0.9rem;
+        padding: 0.5em 1em;
+    }
+
+    .btn-outline-secondary {
+        border-color: #6c757d;
+        color: #6c757d;
+    }
+
+    .btn-outline-secondary:hover {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
+
+    @media (max-width: 768px) {
+        main {
+            padding-top: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Main Content -->
+        <main class="col-12 px-md-4">
+            <div class="section-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h2 class="h2 mb-0"><i class="bi bi-files me-2"></i> Task Submissions</h2>
+                    <a href="{% if user_type == 'employer' %}{% url 'jobs:employer_dashboard' %}{% else %}{% url 'jobs:student_dashboard' %}{% endif %}" class="btn btn-sm btn-outline-light">
+                        <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        <ul class="messages">
+                            {% for message in messages %}
+                                <li class="alert alert-{{ message.tags }}"> {{ message }} </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Job</th>
+                                    <th>Task Description</th>
+                                    <th>Due Date</th>
+                                    <th>Submission</th>
+                                    <th>Submission Date</th>
+                                    {% if user_type == 'employer' %}
+                                        <th>Student</th>
+                                        <th>Action</th>
+                                    {% else %}
+                                        <th>Feedback</th>
+                                    {% endif %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for assignment in assignments %}
+                                <tr>
+                                    <td>{{ assignment.application.job.title }}</td>
+                                    <td>{{ assignment.task_description|truncatewords:20 }}</td>
+                                    <td>{{ assignment.due_date|date:"M d, Y"|default:"N/A" }}</td>
+                                    <td>
+                                        {% if assignment.submission %}
+                                            <span class="badge bg-success">Submitted</span>
+                                            <p class="mb-0 small">{{ assignment.submission.description|truncatewords:20 }}</p>
+                                            {% if assignment.submission.work_file %}
+                                                <a href="{{ assignment.submission.work_file.url }}" class="btn btn-sm btn-outline-primary mt-1" data-bs-toggle="tooltip" title="Download submitted file">
+                                                    <i class="bi bi-download me-1"></i> Download
+                                                </a>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge bg-warning">Not Submitted</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ assignment.submission.submitted_date|date:"M d, Y H:i"|default:"N/A" }}</td>
+                                    {% if user_type == 'employer' %}
+                                        <td>{{ assignment.application.student.user.username }}</td>
+                                        <td>
+                                            {% if assignment.submission and not assignment.completed %}
+                                                <a href="{% url 'payment:submit_feedback' assignment.pk %}" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Provide feedback for this submission">
+                                                    Submit Feedback
+                                                </a>
+                                            {% elif assignment.completed %}
+                                                <span class="badge bg-primary">Completed</span>
+                                            {% else %}
+                                                <span class="badge bg-warning">Waiting for Submission</span>
+                                            {% endif %}
+                                        </td>
+                                    {% else %}
+                                        <td>
+                                            {% if assignment.feedback %}
+                                                Rating: {{ assignment.feedback.rating }}/5<br>
+                                                {{ assignment.feedback.performance|truncatewords:20 }}
+                                            {% else %}
+                                                <span class="text-muted">No feedback yet</span>
+                                            {% endif %}
+                                        </td>
+                                    {% endif %}
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="{% if user_type == 'employer' %}7{% else %}6{% endif %}" class="text-muted text-center py-4">
+                                        <i class="bi bi-files fs-1"></i>
+                                        <p class="mt-2 mb-0">No tasks assigned yet.</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+});
+</script>
+{% endblock %}

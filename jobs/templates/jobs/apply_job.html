@@ -5,40 +5,154 @@
 
 {% block content %}
 <div class="container my-5">
-    <div class="card">
-        <div class="card-header bg-primary text-white">
-            <h2>Apply for {{ job.title }}</h2>
-            <p class="mb-0">{{ job.employer.company_name }} • {{ job.location }}</p>
-        </div>
-        <div class="card-body">
-            <form method="POST" enctype="multipart/form-data">
-                {% csrf_token %}
-                {{ form|crispy }}
-                {% if job.questions.exists %}
-                <h4 class="mt-4">Additional Questions</h4>
-                {% for question in job.questions.all %}
-                <div class="mb-3">
-                    <label class="form-label">{{ question.question_text }}</label>
-                    {% if question.question_type == 'text' %}
-                        <textarea name="question_{{ question.id }}" class="form-control" rows="4" required></textarea>
-                    {% else %}
-                        <select name="question_{{ question.id }}" class="form-select" required>
-                            {% for choice in question.choices %}
-                                <option value="{{ choice }}">{{ choice }}</option>
-                            {% endfor %}
-                        </select>
-                    {% endif %}
-                </div>
-                {% endfor %}
-                {% endif %}
-                <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-send me-1"></i> Submit Application
-                    </button>
-                    <a href="{% url 'jobs:job_detail' job.id %}" class="btn btn-outline-secondary">Cancel</a>
-                </div>
-            </form>
-        </div>
+  <div class="card">
+    <div class="card-header bg-primary text-white">
+      <h2 class="mb-0">Apply for {{ job.title }}</h2>
+      <p class="mb-0">{{ job.employer.company_name }} • {{ job.location }}</p>
     </div>
+
+    <div class="card-body">
+      <form method="POST" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+
+        {# Render all fields except assessment_skills automatically #}
+        {% for field in form %}
+          {% if field.name != 'assessment_skills' %}
+            {{ field|as_crispy_field }}
+          {% endif %}
+        {% endfor %}
+
+        {# Custom dropdown for assessment_skills #}
+        <div class="mb-3">
+          <!-- Hidden original select -->
+          <div id="assessment-skills-hidden" style="display:none;">
+            {{ form.assessment_skills }}
+          </div>
+
+          <!-- Visible dropdown control -->
+          <div class="dropdown" id="assessment-skills-widget">
+            <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start"
+                    type="button" id="id_assessment_skills"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+              <span id="assessment-skills-label">Assessment Skills (pick up to 3)</span>
+            </button>
+            <ul class="dropdown-menu w-100 p-2" aria-labelledby="id_assessment_skills"
+                style="max-height: 260px; overflow-y: auto;">
+              <!-- JS will populate checkbox items -->
+            </ul>
+            <div class="form-text">Pick up to 3 assessment skills.</div>
+          </div>
+          {% for e in form.assessment_skills.errors %}
+            <div class="text-danger small mt-1">{{ e }}</div>
+          {% endfor %}
+        </div>
+
+        {# Additional Questions #}
+        {% if job.questions.count %}
+          <h4 class="mt-4">Additional Questions</h4>
+          {% for question in job.questions.all %}
+            <div class="mb-3">
+              <label class="form-label">{{ question.question_text }}</label>
+              {% if question.question_type == 'text' %}
+                <textarea name="question_{{ question.id }}" class="form-control" rows="4" required></textarea>
+              {% else %}
+                <select name="question_{{ question.id }}" class="form-select" required>
+                  {% for choice in question.choices %}
+                    <option value="{{ choice }}">{{ choice }}</option>
+                  {% endfor %}
+                </select>
+              {% endif %}
+            </div>
+          {% endfor %}
+        {% endif %}
+
+        <div class="d-grid gap-2 mt-4">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-send me-1"></i> Submit Application
+          </button>
+          <a href="{% url 'jobs:job_detail' job.id %}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
+
+<script>
+(function () {
+  var hiddenWrap = document.getElementById('assessment-skills-hidden');
+  if (!hiddenWrap) return;
+
+  var hiddenSelect = hiddenWrap.querySelector('select#id_assessment_skills');
+  if (!hiddenSelect) return;
+
+  hiddenSelect.setAttribute('multiple', 'multiple');
+
+  var dropdown = document.querySelector('#assessment-skills-widget .dropdown-menu');
+  var label = document.getElementById('assessment-skills-label');
+  var MAX = 3;
+
+  function buildMenu() {
+    dropdown.innerHTML = '';
+    Array.from(hiddenSelect.options).forEach(function (opt) {
+      var li = document.createElement('li');
+      var id = 'skill-opt-' + opt.value;
+      li.innerHTML = `
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="${opt.value}" id="${id}">
+          <label class="form-check-label" for="${id}">${opt.text}</label>
+        </div>
+      `;
+      dropdown.appendChild(li);
+    });
+    syncCheckboxesFromSelect();
+  }
+
+  function selectedOptions() {
+    return Array.from(hiddenSelect.options).filter(o => o.selected);
+  }
+
+  function updateLabel() {
+    var sel = selectedOptions();
+    if (sel.length === 0) {
+      label.textContent = 'Assessment Skills (pick up to 3)';
+      return;
+    }
+    var names = sel.map(o => o.text);
+    label.textContent = names.length <= 2
+      ? names.join(', ')
+      : names.slice(0, 2).join(', ') + ' +' + (names.length - 2) + ' more';
+  }
+
+  function syncCheckboxesFromSelect() {
+    var selectedVals = new Set(selectedOptions().map(o => o.value));
+    dropdown.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      cb.checked = selectedVals.has(cb.value);
+    });
+    updateLabel();
+  }
+
+  function onCheckboxChange(e) {
+    if (e.target && e.target.matches('input[type="checkbox"]')) {
+      var val = e.target.value;
+      var opt = Array.from(hiddenSelect.options).find(o => o.value === val);
+      if (!opt) return;
+
+      if (e.target.checked) {
+        if (selectedOptions().length >= MAX) {
+          e.target.checked = false;
+          alert('You can select up to ' + MAX + ' skills.');
+          return;
+        }
+        opt.selected = true;
+      } else {
+        opt.selected = false;
+      }
+      updateLabel();
+    }
+  }
+
+  buildMenu();
+  dropdown.addEventListener('change', onCheckboxChange);
+})();
+</script>
 {% endblock %}

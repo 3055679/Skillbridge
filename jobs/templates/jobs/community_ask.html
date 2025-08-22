@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block title %}Ask a Question{% endblock %}
+{% block content %}
+<div class="container my-4">
+  <h3>Ask a Question</h3>
+  <form method="post">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <div class="mt-2">
+      <a href="{% url 'jobs:community' %}" class="btn btn-outline-secondary">Cancel</a>
+      <button class="btn btn-primary">Post</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

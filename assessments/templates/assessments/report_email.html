@@ -1,0 +1,13 @@
+<h2>Your Assessment Report</h2>
+<p><strong>Total (MCQ provisional):</strong> {{ report.total_score }}</p>
+
+<h3>Per Skill</h3>
+<ul>
+  {% for k, v in report.per_skill.items %}
+    <li>{{ k }}: {{ v }}</li>
+  {% empty %}
+    <li>No skill breakdown available.</li>
+  {% endfor %}
+</ul>
+
+<p>{{ report.summary }}</p>
