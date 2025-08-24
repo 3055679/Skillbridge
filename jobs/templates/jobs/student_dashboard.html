@@ -12,6 +12,7 @@
         --accent-color: #4895ef;
         --light-bg: #f8f9fa;
         --dark-bg: #212529;
+        
     }
     
     /* Sidebar Styles */
@@ -224,7 +225,7 @@
         height: calc(100vh - var(--navbar-h, 56px));
         overflow-y: auto;
         z-index: 1020; /* below navbar */
-        background: inherit; /* keep your existing gradient/styles */
+        background: inherit; /*  your existing gradient/styles */
     }
         /* Ensure nav-link text is visible */
     .nav-link {
@@ -236,6 +237,13 @@
 
     .nav-link:hover {
         color: #007bff !important; /* Highlight on hover for better UX */
+    }
+    /* Footer alignment fix */
+    @media (min-width: 768px) {
+    footer {
+        margin-left: var(--sidebar-w, 260px);   /* same offset as dashboard main */
+        width: calc(100% - var(--sidebar-w, 260px));
+    }
     }
 </style>
 {% endblock %}
@@ -342,6 +350,35 @@
                 </div>
             </div>
             {% endif %}
+
+            {% if notifications %}
+            <div class="section-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-bell me-2"></i>Notifications</h5>
+                <a href="{% url 'jobs:student_notifications' %}" class="btn btn-sm btn-outline-primary">
+                View All
+                </a>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                {% for n in notifications %}
+                    <li class="list-group-item d-flex justify-content-between align-items-start {% if not n.is_read %}fw-semibold{% endif %}">
+                    <div>
+                        {% if n.url %}<a href="{{ n.url }}">{% endif %}
+                        {{ n.message }}
+                        {% if n.url %}</a>{% endif %}
+                        <div class="small text-muted">{{ n.created_at|date:"M d, Y H:i" }}</div>
+                    </div>
+                    {% if not n.is_read %}
+                        <span class="badge bg-warning-subtle text-warning-emphasis">New</span>
+                    {% endif %}
+                    </li>
+                {% endfor %}
+                </ul>
+            </div>
+            </div>
+            {% endif %}
+
 
             <!-- Stats Cards Section -->
             <div class="row mb-4" id="dashboard">

@@ -123,12 +123,12 @@
                     </span>
                 </p>
                 {% if application.cover_letter %}
-                    <p><strong>Cover Letter:</strong></p>
+                    <p><strong>Why do you want this job?:</strong></p>
                     <div class="border p-3 bg-white rounded">
                         {{ application.cover_letter|linebreaks }}
                     </div>
                 {% else %}
-                    <p><strong>Cover Letter:</strong> Not provided</p>
+                    <p><strong>Why do you want this job?:</strong> Not provided</p>
                 {% endif %}
                 {% if application.resume %}
                     <p><strong>Application Resume:</strong> 

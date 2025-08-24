@@ -63,5 +63,6 @@ urlpatterns = [
     path('portfolio/view/<int:id>/', views.view_portfolio, name='view_portfolio'),
     path('home/', views.home, name='home'),
     path('dashboard/', views.dashboard, name='dashboard'),
+    path("profile/upload-picture/", views.upload_profile_picture, name="upload_profile_picture"),
     
 ]

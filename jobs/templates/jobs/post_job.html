@@ -7,6 +7,7 @@
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 {% endblock %}
 
 {% block extra_css %}
@@ -14,25 +15,8 @@
     :root {
         --primary-color: #4361ee;
         --secondary-color: #3f37c9;
-        --accent-color: #4895ef;
         --light-bg: #f8f9fa;
-    }
-
-    .job-type-card {
-        border: 2px solid transparent;
-        border-radius: 8px;
-        padding: 1rem;
-        transition: all 0.3s;
-        cursor: pointer;
-    }
-
-    .job-type-card.selected {
-        border-color: var(--primary-color);
-        background: rgba(67, 97, 238, 0.1);
-    }
-
-    .job-type-card:hover {
-        background: rgba(0, 0, 0, 0.05);
+        --text-muted: #6c757d;
     }
 
     .form-section {
@@ -42,6 +26,70 @@
         padding: 2rem;
         margin-bottom: 2rem;
     }
+
+    .question-card {
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 1.5rem;
+        background: #fff;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .question-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .btn-gradient {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: #fff;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        transition: opacity 0.3s ease;
+    }
+
+    .btn-gradient:hover {
+        opacity: 0.9;
+        color: #fff;
+    }
+
+    .btn-outline-danger {
+        border-radius: 6px;
+        padding: 0.5rem 1rem;
+    }
+
+    .help-text {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-top: 0.5rem;
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: #343a40;
+    }
+
+    .form-control, .form-select {
+        border-radius: 6px;
+        padding: 0.75rem;
+    }
+
+    .fade-in {
+        animation: fadeIn 0.5s ease-in;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .errorlist {
+        color: #dc3545;
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+    }
 </style>
 {% endblock %}
 
@@ -49,37 +97,108 @@
 <div class="container my-5">
     <div class="form-section">
         <h2 class="mb-4"><i class="bi bi-plus-circle me-2"></i>Post a New Job</h2>
+        {% if form_errors or formset_errors or formset_non_form_errors %}
+            <div class="alert alert-danger">
+                <strong>Please correct the following errors:</strong>
+                {% if form_errors %}
+                    <ul>
+                        {% for field, errors in form_errors.items %}
+                            <li>{{ field }}: {{ errors|join:", " }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                {% if formset_non_form_errors %}
+                    <ul>
+                        {% for error in formset_non_form_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                {% if formset_errors %}
+                    <ul>
+                        {% for idx, errors in formset_errors.items %}
+                            <li>Question {{ idx|add:1 }}:
+                                <ul>
+                                    {% for field, field_errors in errors.items %}
+                                        <li>{{ field }}: {{ field_errors|join:", " }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        {% endif %}
         <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <div class="job-type-card {% if form.job_type.value == 'INT' %}selected{% endif %}" data-type="INT">
-                        <h5><i class="bi bi-briefcase me-2"></i>Internship</h5>
-                        <p class="text-muted">{{ form.instance.INTERNSHIP_DESCRIPTION }}</p>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="job-type-card {% if form.job_type.value == 'GIG' %}selected{% endif %}" data-type="GIG">
-                        <h5><i class="bi bi-lightning-charge me-2"></i>Gig</h5>
-                        <p class="text-muted">{{ form.instance.GIG_DESCRIPTION }}</p>
-                    </div>
-                </div>
-                {{ form.job_type|as_crispy_field }}
-            </div>
             {{ form|crispy }}
-            <h4 class="mt-4">Custom Questions</h4>
-            {{ question_formset.management_form }}
-            {% for qform in question_formset %}
-                <div class="form-section mb-3">
-                    {{ qform|crispy }}
-                    {% if not forloop.first %}
-                    <div class="form-check">
-                        <input type="checkbox" name="{{ qform.prefix }}-DELETE" id="{{ qform.prefix }}-DELETE" class="form-check-input">
-                        <label for="{{ qform.prefix }}-DELETE" class="form-check-label">Delete this question</label>
-                    </div>
-                    {% endif %}
+            <div class="form-section">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="mb-0"><i class="bi bi-ui-checks-grid me-2"></i>Custom Questions</h4>
+                    <button type="button" class="btn btn-sm btn-gradient" id="add-question-btn">
+                        <i class="bi bi-plus-lg me-1"></i>Add Question
+                    </button>
                 </div>
-            {% endfor %}
+                <p class="help-text mb-4">
+                    Add screening questions to evaluate candidates. Choose <strong>Text</strong> for open-ended responses or <strong>Multiple Choice</strong> for predefined options (enter one option per line, e.g., Yes\nNo\nMaybe).
+                </p>
+                {{ question_formset.management_form }}
+                <div id="questions-container">
+                    {% for qform in question_formset %}
+                        <div class="question-card fade-in" data-form-index="{{ forloop.counter0 }}">
+                            {{ qform.id }} {# Include hidden id field for existing questions #}
+                            <div class="row g-3">
+                                <div class="col-md-8">
+                                    {{ qform.question_text|as_crispy_field }}
+                                </div>
+                                <div class="col-md-4">
+                                    {{ qform.question_type|as_crispy_field }}
+                                </div>
+                                <div class="col-12 mcq-options-wrapper" style="display: none;">
+                                    {% if qform.choices.value %}
+                                        <textarea name="{{ qform.choices.name }}" id="{{ qform.choices.id_for_label }}" class="form-control" rows="3" placeholder="Enter options, one per line">{{ qform.choices.value|join:"\n" }}</textarea>
+                                    {% else %}
+                                        {{ qform.choices|as_crispy_field }}
+                                    {% endif %}
+                                    <div class="help-text">Enter one option per line (e.g., Yes\nNo\nMaybe).</div>
+                                </div>
+                            </div>
+                            {% if not forloop.first %}
+                            <div class="d-flex justify-content-end mt-3">
+                                <label class="btn btn-outline-danger btn-sm mb-0">
+                                    <input type="checkbox" class="d-none delete-checkbox" name="{{ qform.prefix }}-DELETE" id="{{ qform.prefix }}-DELETE">
+                                    <i class="bi bi-trash me-1"></i>Delete
+                                </label>
+                            </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+                <!-- Empty Form Template for Dynamic Addition -->
+                <template id="empty-form-template">
+                    <div class="question-card fade-in" data-form-index="__prefix__">
+                        {{ question_formset.empty_form.id }} {# Include hidden id field #}
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                {{ question_formset.empty_form.question_text|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ question_formset.empty_form.question_type|as_crispy_field }}
+                            </div>
+                            <div class="col-12 mcq-options-wrapper" style="display: none;">
+                                {{ question_formset.empty_form.choices|as_crispy_field }}
+                                <div class="help-text">Enter one option per line (e.g., Yes\nNo\nMaybe).</div>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end mt-3">
+                            <label class="btn btn-outline-danger btn-sm mb-0">
+                                <input type="checkbox" class="d-none delete-checkbox" name="form-__prefix__-DELETE" id="form-__prefix__-DELETE">
+                                <i class="bi bi-trash me-1"></i>Delete
+                            </label>
+                        </div>
+                    </div>
+                </template>
+            </div>
             <div class="d-grid gap-2">
                 <button type="submit" class="btn btn-primary">
                     <i class="bi bi-save me-1"></i> Post Job
@@ -93,16 +212,77 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const jobTypeCards = document.querySelectorAll('.job-type-card');
-    const jobTypeInput = document.getElementById('id_job_type');
-    
-    jobTypeCards.forEach(card => {
-        card.addEventListener('click', function() {
-            jobTypeCards.forEach(c => c.classList.remove('selected'));
-            this.classList.add('selected');
-            jobTypeInput.value = this.dataset.type;
+    // Formset Dynamic Add/Remove
+    const container = document.getElementById('questions-container');
+    const addBtn = document.getElementById('add-question-btn');
+    const totalForms = document.getElementById('id_form-TOTAL_FORMS');
+    const emptyTemplate = document.getElementById('empty-form-template').content;
+
+    // Toggle MCQ choices visibility
+    function wireTypeToggles(scope) {
+        const selects = scope.querySelectorAll('select[name$="-question_type"]');
+        selects.forEach(sel => {
+            const wrapper = sel.closest('.question-card').querySelector('.mcq-options-wrapper');
+            const maybeToggle = () => {
+                if (!wrapper) return;
+                const isMcq = sel.value === 'multiple_choice';
+                wrapper.style.display = isMcq ? '' : 'none';
+                const choicesInput = wrapper.querySelector('textarea, input');
+                if (choicesInput) choicesInput.required = isMcq;
+            };
+            sel.addEventListener('change', maybeToggle);
+            maybeToggle();
         });
-    });
+    }
+
+    // Delete question handler
+    function wireDelete(scope) {
+        const labels = scope.querySelectorAll('.question-card .btn-outline-danger');
+        labels.forEach(lbl => {
+            lbl.addEventListener('click', function(e) {
+                const card = this.closest('.question-card');
+                const del = card.querySelector('.delete-checkbox');
+                if (del) {
+                    del.checked = true;
+                    card.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    // Initialize existing forms
+    wireTypeToggles(document);
+    wireDelete(document);
+
+    // Add new question
+    if (addBtn) {
+        addBtn.addEventListener('click', function() {
+            const formIndex = parseInt(totalForms.value, 10);
+            const clone = document.importNode(emptyTemplate, true);
+
+            // Replace __prefix__ in attributes
+            clone.querySelectorAll('*').forEach(el => {
+                if (el.name && el.name.includes('__prefix__')) {
+                    el.name = el.name.replace('__prefix__', formIndex);
+                }
+                if (el.id && el.id.includes('__prefix__')) {
+                    el.id = el.id.replace('__prefix__', formIndex);
+                }
+                if (el.getAttribute && el.getAttribute('for') && el.getAttribute('for').includes('__prefix__')) {
+                    el.setAttribute('for', el.getAttribute('for').replace('__prefix__', formIndex));
+                }
+            });
+
+            const card = clone.querySelector('.question-card');
+            if (card) card.dataset.formIndex = formIndex;
+
+            container.appendChild(clone);
+            totalForms.value = formIndex + 1;
+
+            wireTypeToggles(container);
+            wireDelete(container);
+        });
+    }
 });
 </script>
 {% endblock %}

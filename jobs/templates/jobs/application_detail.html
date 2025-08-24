@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% block messages %}{% endblock %}  {# suppress global alerts for this page #}
 
 {% block title %}Application Detail | SkillBridge{% endblock %}
 
@@ -7,7 +8,7 @@
 <div class="container mt-5">
     <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
         <h2 class="mb-0">Application Details</h2>
-        <a href="{% url 'jobs:my_applications' %}" class="btn btn-outline-primary">
+        <a href="{% if user.is_employer %}{% url 'jobs:employer_jobs' %}{% else %}{% url 'jobs:my_applications' %}{% endif %}" class="btn btn-outline-primary">
             <i class="bi bi-arrow-left me-2"></i>Back to Applications
         </a>
     </div>
@@ -53,7 +54,7 @@
                 </div>
 
                 {% if application.cover_letter %}
-                    <h5 class="section-title mt-4">Cover Letter</h5>
+                    <h5 class="section-title mt-4">Why do you want this job?:</h5>
                     <div class="bg-light p-3 rounded border">{{ application.cover_letter|linebreaks }}</div>
                 {% endif %}
                 {% if application.resume %}

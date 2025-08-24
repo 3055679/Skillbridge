@@ -66,6 +66,18 @@
         background: #a8a8a8;
     }
     .asteriskField { color:#dc3545; }
+
+    .logo-wrapper { cursor: pointer; }
+    .logo-overlay {
+        position: absolute;
+        right: -6px;
+        bottom: -6px;
+        border-radius: 50%;
+        box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    }
+    /* Hide the crispy form’s company_logo field block (but keep the input present) */
+    #div_id_company_logo .form-label { display:none; }
+    #div_id_company_logo .form-text { display:none; }
 </style>
 {% endblock %}
 
@@ -79,8 +91,17 @@
                 </div>
                 <div class="card-body">
                     <div class="text-center mb-4">
-                        <img src="{% static 'images/user1.jpg' %}" 
-                             class="rounded-circle profile-img" alt="Company Logo">
+                        <div class="logo-wrapper position-relative d-inline-block">
+                            <img
+                            id="companyLogoPreview"
+                            src="{{ company_logo_url }}"
+                            class="rounded-circle profile-img"
+                            alt="Company Logo"
+                            />
+                            <button type="button" class="logo-overlay btn btn-sm btn-light" title="Change logo">
+                            <i class="bi bi-camera-fill"></i>
+                            </button>
+                        </div>
                         <h5 class="mt-3">{{ user.employerprofile.company_name }}</h5>
                         <p class="text-muted">{{ user.email }}</p>
                     </div>
@@ -108,4 +129,39 @@
         </div>
     </div>
 </div>
+{% block extra_js %}
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const preview = document.getElementById('companyLogoPreview');
+  const overlayBtn = document.querySelector('.logo-overlay');
+
+  // Find the actual file input rendered by crispy: it's id="id_company_logo"
+  const fileInput = document.getElementById('id_company_logo');
+
+  // Clicking on the image or overlay opens the file chooser
+  [preview, overlayBtn].forEach(el => {
+    el && el.addEventListener('click', () => fileInput && fileInput.click());
+  });
+
+  // Live preview
+  if (fileInput) {
+    fileInput.addEventListener('change', () => {
+      const f = fileInput.files?.[0];
+      if (!f) return;
+      const reader = new FileReader();
+      reader.onload = e => { preview.src = e.target.result; };
+      reader.readAsDataURL(f);
+    });
+  }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+  const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+  [...tooltipTriggerList].forEach(el => new bootstrap.Tooltip(el));
+});
+
+</script>
+{% endblock %}
 {% endblock %}

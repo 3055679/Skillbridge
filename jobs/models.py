@@ -101,7 +101,7 @@ class Application(models.Model):
     job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name='applications')
     applied_date = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
-    cover_letter = models.TextField(blank=True)
+    cover_letter = models.TextField(verbose_name="Why do you want this job?", blank=True)
     resume = models.FileField(upload_to='application_resumes/', blank=True, null=True)
     declared_skills = models.ManyToManyField(Skill, blank=True, related_name="applications_declared")
 
@@ -293,6 +293,39 @@ class UserSettings(models.Model):
 
     def __str__(self):
         return f"Settings for {self.student.user.username}"
+    
+
+class StudentNotification(models.Model):
+    student = models.ForeignKey(
+        StudentProfile,
+        on_delete=models.CASCADE,
+        related_name='student_notifications'
+    )
+    job = models.ForeignKey(
+        Job,
+        on_delete=models.CASCADE,
+        related_name='student_notifications',
+        null=True, blank=True
+    )
+    message = models.CharField(max_length=255)
+    url = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    class Meta:
+        # Prevent duplicate “new job X” notifs for the same student/job
+        constraints = [
+            models.UniqueConstraint(
+                fields=['student', 'job'],
+                name='uniq_student_job_newjob_notif'
+            )
+        ]
+        indexes = [
+            models.Index(fields=['student', 'is_read', '-created_at']),
+        ]
+
+    def __str__(self):
+        return f"[{self.student.user.username}] {self.message}"
 
 # jobs/models.py
 # import uuid

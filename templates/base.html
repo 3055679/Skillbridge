@@ -26,9 +26,11 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
+                    {% if not user.is_employer %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'jobs:job_list' %}">Jobs</a>
                     </li>
+                    {% endif %}
                     {% if user.is_authenticated %}
                         {% if user.is_student %}
                             <li class="nav-item">
@@ -142,7 +144,7 @@
                     <ul class="list-unstyled text-white-75">
                         <li class="mb-2"><i class="bi bi-geo-alt me-2"></i> 456 Opportunity Ave, Career City, USA</li>
                         <li class="mb-2"><i class="bi bi-telephone me-2"></i> +1 (555) 987-6543</li>
-                        <li class="mb-2"><i class="bi bi-envelope me-2"></i> support@skillbridge.com</li>
+                        <li class="mb-2"><i class="bi bi-envelope me-2"></i> skillbridge.careers25@gmail.com</li>
                     </ul>
                 </div>
             </div>
@@ -170,6 +172,35 @@
             }, 5000);
         });
     </script> -->
+
+    <script>
+    // Function to get CSRF token from cookie
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Refresh CSRF token on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const forms = document.querySelectorAll('form[method="post"]');
+        forms.forEach(form => {
+            let csrfInput = form.querySelector('input[name="csrfmiddlewaretoken"]');
+            if (csrfInput) {
+                csrfInput.value = getCookie('csrftoken');
+            }
+        });
+    });
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

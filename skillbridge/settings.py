@@ -187,8 +187,16 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 ADMIN_URL='/admin/'
 
-SESSION_COOKIE_SAMESITE = 'Lax'  # Default, prevents cross-site issues
-SESSION_COOKIE_DOMAIN = None  # No subdomain sharing
+# SESSION_COOKIE_SAMESITE = 'Lax'  # Default, prevents cross-site issues
+# SESSION_COOKIE_DOMAIN = None  # No subdomain sharing
+
+CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
+CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000', 'http://localhost:8000']
+
 
 SESSION_COOKIE_AGE = 3600  # 1 hour (default is 1200 seconds or 20 minutes)
 SESSION_SAVE_EVERY_REQUEST = True  # Refresh session on every request

@@ -69,6 +69,34 @@ class JobForm(forms.ModelForm):
                 raise forms.ValidationError("Salary amount and type are required for paid jobs.")
         return cleaned_data
 
+# class JobQuestionForm(forms.ModelForm):
+#     choices = forms.CharField(
+#         widget=forms.Textarea(attrs={'rows': 3, 'placeholder': 'Enter options, one per line'}),
+#         required=False,
+#         help_text="For multiple-choice questions, enter one option per line."
+#     )
+
+#     class Meta:
+#         model = JobQuestion
+#         fields = ['question_text', 'question_type', 'choices']
+#         widgets = {
+#             'question_text': forms.TextInput(attrs={'placeholder': 'Enter your question'}),
+#             'question_type': forms.Select(),
+#         }
+
+#     def clean_choices(self):
+#         choices = self.cleaned_data.get('choices')
+#         question_type = self.cleaned_data.get('question_type')
+#         if question_type == 'multiple_choice' and not choices:
+#             raise forms.ValidationError("Multiple-choice questions require at least one option.")
+#         if choices:
+#             choices_list = [choice.strip() for choice in choices.split('\n') if choice.strip()]
+#             return choices_list
+#         return []
+
+# JobQuestionFormSet = formset_factory(JobQuestionForm, extra=1, can_delete=True)
+from django.forms import modelformset_factory
+
 class JobQuestionForm(forms.ModelForm):
     choices = forms.CharField(
         widget=forms.Textarea(attrs={'rows': 3, 'placeholder': 'Enter options, one per line'}),
@@ -81,7 +109,7 @@ class JobQuestionForm(forms.ModelForm):
         fields = ['question_text', 'question_type', 'choices']
         widgets = {
             'question_text': forms.TextInput(attrs={'placeholder': 'Enter your question'}),
-            'question_type': forms.Select(),
+            'question_type': forms.Select(choices=[('text', 'Text'), ('multiple_choice', 'Multiple Choice')]),
         }
 
     def clean_choices(self):
@@ -94,7 +122,15 @@ class JobQuestionForm(forms.ModelForm):
             return choices_list
         return []
 
-JobQuestionFormSet = formset_factory(JobQuestionForm, extra=1, can_delete=True)
+JobQuestionFormSet = modelformset_factory(
+    JobQuestion,
+    form=JobQuestionForm,
+    extra=1,
+    can_delete=True
+)
+
+
+
 
 # class ApplicationForm(forms.ModelForm):
 #     class Meta:
@@ -108,23 +144,6 @@ from django import forms
 from jobs.models import Application
 from accounts.models import Skill
 
-# class ApplicationForm(forms.ModelForm):
-#     declared_skills = forms.ModelMultipleChoiceField(
-#         queryset=Skill.objects.all().order_by("name"),
-#         widget=forms.SelectMultiple(attrs={"data-placeholder": "Select exactly 3 skills"}),
-#         required=True,
-#         help_text="Pick exactly 3 skills most relevant to this job."
-#     )
-
-#     class Meta:
-#         model = Application
-#         fields = ["resume", "cover_letter", "declared_skills"]
-
-#     def clean_declared_skills(self):
-#         skills = self.cleaned_data["declared_skills"]
-#         if skills.count() != 3:
-#             raise forms.ValidationError("Please select exactly 3 skills.")
-#         return skills
 
 from assessments.models import AssessmentSkill
 
@@ -142,7 +161,11 @@ class ApplicationForm(forms.ModelForm):
 
     class Meta:
         model = Application
-        fields = ["resume", "cover_letter"]   # <-- do NOT include assessment_skills here
+        fields = ["resume", "cover_letter"]   
+
+        labels = {
+            'cover_letter': 'Why do you want this job?',
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -369,7 +392,7 @@ class UserSettingsForm(forms.ModelForm):
         model = UserSettings
         fields = [
             'notify_job_updates', 'notify_interviews', 'notify_community_replies', 'weekly_digest',
-            'show_profile_to_employers', 'show_resume_to_employers', 'dark_mode','theme',
+            'dark_mode','theme',
             'font_size',
             'reduced_motion',
             'high_contrast',
@@ -403,94 +426,4 @@ class UserSettingsForm(forms.ModelForm):
             'compact_mode': 'Compact Layout',
         }
 
-
-# jobs/forms.py
-
-# class UserSettingsForm(forms.ModelForm):
-#     # Virtual fields for nicer UX (map to CSV in save())
-#     preferred_job_types = forms.MultipleChoiceField(
-#         required=False,
-#         choices=[('INT', 'Internship'), ('GIG', 'Gig')],
-#         widget=forms.CheckboxSelectMultiple
-#     )
-#     preferred_locations = forms.CharField(
-#         required=False,
-#         help_text="Comma-separated (e.g., Glasgow, Remote)"
-#     )
-#     keywords = forms.CharField(
-#         required=False,
-#         help_text="Comma-separated (e.g., python, django)"
-#     )
-
-#     class Meta:
-#         model = UserSettings
-#         fields = [
-#             # ---------- EXISTING ----------
-#             'notify_job_updates',
-#             'notify_interviews',
-#             'notify_community_replies',
-#             'weekly_digest',
-#             'show_profile_to_employers',
-#             'show_resume_to_employers',
-#             'dark_mode',
-
-#             # ---------- NEW ----------
-#             'theme',
-#             'timezone',
-#             'preferred_job_types',  # virtual
-#             'preferred_locations',  # virtual
-#             'min_salary',
-#             'keywords',             # virtual string, still stored in model as keywords
-#             'resume_template',
-#             'resume_include_photo',
-#             'auto_attach_resume_on_apply',
-#             'portfolio_public',
-#         ]
-#         widgets = {
-#             # existing
-#             'notify_job_updates': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-#             'notify_interviews': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-#             'notify_community_replies': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-#             'weekly_digest': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-#             'show_profile_to_employers': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-#             'show_resume_to_employers': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-#             'dark_mode': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-
-#             # new
-#             'theme': forms.Select(attrs={'class': 'form-select'}),
-#             'timezone': forms.TextInput(attrs={'placeholder': 'e.g., Europe/London', 'class': 'form-control'}),
-#             'min_salary': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
-#             'resume_template': forms.Select(attrs={'class': 'form-select'}),
-#             'resume_include_photo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-#             'auto_attach_resume_on_apply': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-#             'portfolio_public': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-#         }
-
-#     def __init__(self, *args, **kwargs):
-#         instance: UserSettings = kwargs.get('instance')
-#         super().__init__(*args, **kwargs)
-#         if instance:
-#             self.fields['preferred_job_types'].initial = instance.job_types_list()
-#             self.fields['preferred_locations'].initial = ', '.join(instance.locations_list())
-#             self.fields['keywords'].initial = ', '.join(instance.keywords_list())
-
-#     def clean_preferred_locations(self):
-#         raw = self.cleaned_data.get('preferred_locations', '')
-#         items = [x.strip() for x in raw.split(',') if x.strip()]
-#         return ', '.join(items)
-
-#     def clean_keywords(self):
-#         raw = self.cleaned_data.get('keywords', '')
-#         items = [x.strip() for x in raw.split(',') if x.strip()]
-#         return ', '.join(items)
-
-#     def save(self, commit=True):
-#         obj: UserSettings = super().save(commit=False)
-#         job_types = self.cleaned_data.get('preferred_job_types', [])
-#         obj.preferred_job_types_csv = ','.join(job_types)
-#         obj.preferred_locations_csv = self.cleaned_data.get('preferred_locations', '')
-#         obj.keywords = self.cleaned_data.get('keywords', '')
-#         if commit:
-#             obj.save()
-#         return obj
 

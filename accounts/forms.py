@@ -91,39 +91,18 @@ class StudentSignUpForm(UserCreationForm):
     
 
 
-# class EmployerSignUpForm(UserCreationForm):
-#     company_name = forms.CharField(max_length=200, required=True)
-#     email = forms.EmailField(required=True)
-#     phone_number = forms.CharField(
-#         max_length=17,
-#         required=True,
-#         validators=[RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Phone number must be entered in the format: '+999999999'.")]
-#     )
-#     country = forms.CharField(max_length=100, required=True)
-
-#     class Meta:
-#         model = User
-#         fields = ('username', 'email', 'phone_number', 'country', 'company_name', 'password1', 'password2')
-
-#     def clean(self):
-#         cleaned_data = super().clean()
-#         email = cleaned_data.get('email')
-#         if email and User.objects.filter(email=email).exists():
-#             raise ValidationError("This email is already registered. Please use a different email or log in.")
-#         return cleaned_data
-
 class EmployerSignUpForm(UserCreationForm):
     company_name = forms.CharField(max_length=200, required=True)
     email = forms.EmailField(required=True)
     phone_number = forms.CharField(
-        max_length=13,
-        required=True,
-        label='Phone Number',
-        validators=[RegexValidator(
-        regex=r'^\+\d{12}$',
-        message="Phone number must be in the format: '+CCXXXXXXXXXX' (2-digit country code + 10-digit number)."
+    max_length=14,
+    required=True,
+    label='Phone Number',
+    validators=[RegexValidator(
+        regex=r'^\+[1-9]\d{0,2}\d{10}$',
+        message="Phone number must be in the format: '+<1-3 digit country code><10-digit number>' (e.g., +12025550123 or +447911123456)."
     )]
-    )
+)
     country = forms.CharField(max_length=100, required=True)
 
     class Meta:
@@ -135,15 +114,44 @@ class EmployerSignUpForm(UserCreationForm):
         self.fields['password1'].validators.append(PasswordValidator.validate_password)
         self.fields['password2'].validators.append(PasswordValidator.validate_password)
 
-    def clean(self):
-        cleaned_data = super().clean()
-        email = cleaned_data.get('email')
-        if email:
+    # def clean(self):
+    #     cleaned_data = super().clean()
+    #     email = cleaned_data.get('email')
+    #     if email:
+    #         if User.objects.filter(email=email).exists():
+    #             raise ValidationError("This email is already registered. Please use a different email or log in.")
+    #         if EmployerProfile.objects.filter(email=email).exists():
+    #             raise ValidationError("This email is already registered with an employer profile. Please use a different email.")
+    #     return cleaned_data
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        free_domains = [
+            'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com',
+            'icloud.com', 'protonmail.com', 'mail.com', 'zoho.com', 'gmx.com',
+            'yandex.com', 'live.com', 'msn.com', 'inbox.com', 'rocketmail.com'
+        ]
+        domain = email.split('@')[-1].lower()
+        if domain in free_domains:
+            raise ValidationError(
+                "Please use a business or institutional email address, not a free service like Gmail, Yahoo, or Hotmail."
+            )
+        # Allow common educational domains or patterns
+        educational_patterns = [
+            r'\.edu$', r'\.ac\.[a-z]{2}$',  # e.g., .edu, .ac.uk
+        ]
+        is_educational = any(re.search(pattern, domain) for pattern in educational_patterns)
+        # Optional: Add specific university domains if needed
+        educational_domains = [
+            'harvard.edu', 'mit.edu', 'stanford.edu', 'ox.ac.uk', 'cam.ac.uk'
+        ]
+        if domain not in free_domains and (is_educational or domain not in educational_domains):
+            # Business or educational email, proceed with uniqueness check
             if User.objects.filter(email=email).exists():
                 raise ValidationError("This email is already registered. Please use a different email or log in.")
             if EmployerProfile.objects.filter(email=email).exists():
                 raise ValidationError("This email is already registered with an employer profile. Please use a different email.")
-        return cleaned_data
+        return email
 
 class LoginForm(forms.Form):
     username = forms.CharField()
@@ -159,6 +167,72 @@ class EmployerProfileForm(forms.ModelForm):
             'company_description': forms.Textarea(attrs={'rows': 3}),
         }
 
+        widgets = {
+            "phone_number": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Enter your company phone number",
+                "data-bs-toggle": "tooltip",
+                "data-bs-placement": "right",
+                "title": "Enter your company phone number",
+            }),
+            "company_description": forms.Textarea(attrs={
+                "rows": 3,
+                "class": "form-control",
+                "placeholder": "Describe your company in a few words",
+                "data-bs-toggle": "tooltip",
+                "data-bs-placement": "right",
+                "title": "Describe your company in a few words",
+            }),
+            "company_website": forms.URLInput(attrs={
+                "class": "form-control",
+                "placeholder": "Type your official website (e.g., https://example.com)",
+                "data-bs-toggle": "tooltip",
+                "data-bs-placement": "right",
+                "title": "Type your official website",
+            }),
+            "industry": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "e.g., Information Technology",
+                "data-bs-toggle": "tooltip",
+                "data-bs-placement": "right",
+                "title": "Select/enter your industry",
+            }),
+            "founded_year": forms.NumberInput(attrs={
+                "class": "form-control",
+                "placeholder": "e.g., 2016",
+                "min": 1800, "max": 2100,
+                "data-bs-toggle": "tooltip",
+                "data-bs-placement": "right",
+                "title": "Enter the year your company was founded",
+            }),
+            "company_size": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "e.g., 11-50 employees",
+                "data-bs-toggle": "tooltip",
+                "data-bs-placement": "right",
+                "title": "Enter your company size",
+            }),
+            "company_name": forms.TextInput(attrs={"class": "form-control"}),
+            "country": forms.TextInput(attrs={"class": "form-control"}),
+            "headquarters": forms.TextInput(attrs={"class": "form-control"}),
+            "company_logo": forms.ClearableFileInput(attrs={"class": "form-control"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Make these fields REQUIRED at the form level
+        required_fields = [
+            "company_website",
+            "company_description",
+            "industry",
+            "founded_year",
+            "company_size",
+        ]
+        for f in required_fields:
+            if f in self.fields:
+                self.fields[f].required = True
+
 class UserUpdateForm(UserChangeForm):
     email = forms.EmailField()
     password = None
@@ -166,6 +240,40 @@ class UserUpdateForm(UserChangeForm):
     class Meta:
         model = User
         fields = ['username', 'email', 'first_name', 'last_name']
+
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Disable username and email fields
+        self.fields['username'].disabled = True
+        self.fields['email'].disabled = True
+
+        # Apply tooltips only for employers
+        if self.instance and hasattr(self.instance, 'is_employer') and self.instance.is_employer:
+            self.fields["first_name"].widget.attrs.update({
+                "class": "form-control",
+                "placeholder": "e.g., Priya",
+                "data-bs-toggle": "tooltip",
+                "data-bs-placement": "right",
+                "title": "Write the name of the Company HR",
+            })
+            self.fields["last_name"].widget.attrs.update({
+                "class": "form-control",
+                "placeholder": "e.g., Sharma",
+                "data-bs-toggle": "tooltip",
+                "data-bs-placement": "right",
+                "title": "Write the name of the Company HR",
+            })
+        else:
+            # For non-employers (e.g., students), apply default attributes without tooltips
+            self.fields["first_name"].widget.attrs.update({
+                "class": "form-control",
+                "placeholder": "e.g., Priya",
+            })
+            self.fields["last_name"].widget.attrs.update({
+                "class": "form-control",
+                "placeholder": "e.g., Sharma",
+            })
 
 class StudentProfileForm(ModelForm):
     new_skill = forms.CharField(required=False, widget=forms.TextInput(attrs={'placeholder': 'Add new skill'}))
@@ -186,17 +294,6 @@ class StudentProfileForm(ModelForm):
             'country': forms.TextInput(attrs={'required': True}),
         }
 
-        # def clean_profile_picture(self):
-        #     profile_picture = self.cleaned_data.get('profile_picture')
-        #     if profile_picture and profile_picture.size > 5 * 1024 * 1024:  # 5MB limit
-        #         raise forms.ValidationError("Profile picture size should not exceed 5MB.")
-        #     return profile_picture
-    
-        # def clean_resume(self):
-        #     resume = self.cleaned_data.get('resume')
-        #     if resume and resume.size > 10 * 1024 * 1024:  # 10MB limit
-        #         raise forms.ValidationError("Resume size should not exceed 10MB.")
-        #     return resume
 
 class EducationForm(ModelForm):
     class Meta:
@@ -210,15 +307,7 @@ class EducationForm(ModelForm):
             'end_year': forms.NumberInput(attrs={'required': False}),
         }
 
-        # def clean(self):
-        #     cleaned_data = super().clean()
-        #     currently_studying = cleaned_data.get('currently_studying')
-        #     end_year = cleaned_data.get('end_year')
-        #     if not currently_studying and not end_year:
-        #         raise forms.ValidationError("End year is required if not currently studying.")
-        #     if end_year and currently_studying:
-        #         cleaned_data['end_year'] = None
-        #     return cleaned_data
+        
 
 class ExperienceForm(ModelForm):
     class Meta:
@@ -232,15 +321,7 @@ class ExperienceForm(ModelForm):
             'document': forms.FileInput(attrs={'required': False}),
         }
 
-        # def clean(self):
-        #     cleaned_data = super().clean()
-        #     currently_working = cleaned_data.get('currently_working')
-        #     end_date = cleaned_data.get('end_date')
-        #     if not currently_working and not end_date:
-        #         raise forms.ValidationError("End date is required if not currently working.")
-        #     if end_date and currently_working:
-        #         cleaned_data['end_date'] = None
-        #     return cleaned_data
+       
 
 class PortfolioForm(ModelForm):
     class Meta:
@@ -253,15 +334,7 @@ class PortfolioForm(ModelForm):
             'media_type': forms.Select(attrs={'required': True}),
         }
 
-        # def clean(self):
-        #     cleaned_data = super().clean()
-        #     media = cleaned_data.get('media')
-        #     media_type = cleaned_data.get('media_type')
-        #     if media and not media_type:
-        #         raise forms.ValidationError("Please select a media type (Image or Video).")
-        #     if media_type and not media:
-        #         raise forms.ValidationError("Please upload a file for the selected media type.")
-        #     return cleaned_data
+       
 
 EducationFormSet = inlineformset_factory(StudentProfile, Education, form=EducationForm, extra=1, can_delete=True)
 ExperienceFormSet = inlineformset_factory(StudentProfile, Experience, form=ExperienceForm, extra=1, can_delete=True)
@@ -275,42 +348,7 @@ class CustomPasswordChangeForm(PasswordChangeForm):
             self.fields['new_password1'].validators.append(PasswordValidator.validate_password)
             self.fields['new_password2'].validators.append(PasswordValidator.validate_password)
 
-# class CustomPasswordResetForm(PasswordResetForm):
-#     username = forms.CharField(max_length=150, required=True)
 
-#     def clean(self):
-#         cleaned_data = super().clean()
-#         username = cleaned_data.get('username')
-#         email = cleaned_data.get('email')
-
-#         if username and email:
-#             try:
-#                 user = User.objects.get(username=username)
-#                 # Check if user is a student or employer
-#                 if hasattr(user, 'studentprofile'):
-#                     # Student: Validate personal_email
-#                     student_profile = user.studentprofile
-#                     if student_profile.personal_email is None or student_profile.personal_email != email:
-#                         raise ValidationError(
-#                             "The email does not match the personal email associated with this username."
-#                         )
-#                 elif hasattr(user, 'employerprofile'):
-#                     # Employer: Validate email (company email)
-#                     employer_profile = user.employerprofile
-#                     if employer_profile.email is None or employer_profile.email != email:
-#                         raise ValidationError(
-#                             "The email does not match the company email associated with this username."
-#                         )
-#                 else:
-#                     raise ValidationError("This username is not associated with a student or employer profile.")
-                
-#                 # Update User.email to ensure reset email is sent to the provided email
-#                 user.email = email
-#                 user.save()
-#             except User.DoesNotExist:
-#                 raise ValidationError("No user found with this username.")
-        
-#         return cleaned_data
 
 
 class CustomPasswordResetForm(PasswordResetForm):

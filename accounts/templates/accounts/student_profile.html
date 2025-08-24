@@ -14,7 +14,7 @@
         <div class="col-lg-4">
             <div class="card profile-card mb-4">
                 <div class="card-body text-center">
-                    <div class="profile-picture-container mb-3">
+                    <div class="profile-picture-container mb-3" data-bs-toggle="tooltip" title="Change your profile here">
                         <img src="{{ student.profile_picture_url }}" 
                              class="rounded-circle profile-picture" width="150" height="150" alt="Profile picture">
                         <div class="upload-overlay" onclick="document.getElementById('id_profile_picture')?.click()">
@@ -108,7 +108,7 @@
                     </div>
                     
                     <!-- Quick Links Card -->
-                    <div class="card quick-links-card mb-4">
+                    <div class="card quick-links-card mb-4" data-bs-toggle="tooltip" title="After updating profile, don't press back, click on Dashboard from Quick Links">
                         <div class="card-body">
                             <h5 class="card-title"><i class="bi bi-speedometer2 me-2"></i>Quick Links</h5>
                             <ul class="nav flex-column">
@@ -210,7 +210,7 @@
                             {{ profile_form.resume|as_crispy_field }}
                             
                             <!-- Student ID (Mandatory) -->
-                            <div class="mb-3">
+                            <div class="mb-3" data-bs-toggle="tooltip" title="Upload a valid student ID, we can reject if it’s not matching with your data">
                                 <label class="form-label">Student ID Document* {% if not student.student_id_document %}<span class="text-danger">(Required)</span>{% endif %}</label>
                                 {{ profile_form.student_id_document|as_crispy_field }}
                                 <small class="text-muted">Upload a clear image or PDF of your student ID</small>
@@ -258,7 +258,7 @@
                                 </div>
                             </div>
                             
-                            <div class="d-grid gap-2">
+                            <div class="d-grid gap-2" data-bs-toggle="tooltip" title="After adding all the required fields, save profile">
                                 <button type="submit" name="profile_submit" class="btn btn-primary">
                                     <i class="bi bi-save me-1"></i> Save Profile
                                 </button>
@@ -280,6 +280,7 @@
             </div>
             
             <!-- Education Section (Mandatory) -->
+            <!-- Education Section (Mandatory) -->
             <div class="card mb-4" id="education-section">
                 <div class="card-header">
                     <h4 class="mb-0"><i class="bi bi-mortarboard me-2"></i>Education {% if not educations %}<span class="text-danger">(Required)</span>{% endif %}</h4>
@@ -298,8 +299,12 @@
                                         </button>
                                         <ul class="dropdown-menu">
                                             <li><a class="dropdown-item" href="{% url 'accounts:edit_education' edu.id %}">Edit</a></li>
-                                            <li><a class="dropdown-item" href="{% url 'accounts:delete_education' edu.id %}" 
-                                                   onclick="return confirm('Delete this education entry?')">Delete</a></li>
+                                            <li>
+                                                <form method="post" action="{% url 'accounts:delete_education' edu.id %}" style="margin: 0;">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="dropdown-item">Delete</button>
+                                                </form>
+                                            </li>
                                         </ul>
                                     </div>
                                 </div>
@@ -314,7 +319,6 @@
                     {% else %}
                         <p class="text-muted">Please add at least one education entry to apply for jobs.</p>
                     {% endif %}
-                    
                     <button class="btn btn-outline-primary mt-2" data-bs-toggle="modal" data-bs-target="#addEducationModal">
                         <i class="bi bi-plus-circle me-1"></i> Add Education
                     </button>
@@ -322,7 +326,8 @@
             </div>
             
             <!-- Experience Section (Mandatory) -->
-            <div class="card mb-4" id="experience-section">
+            <!-- Experience Section (Mandatory) -->
+            <div class="card mb-4" id="experience-section" data-bs-toggle="tooltip" title="Add even the smallest task you have done">
                 <div class="card-header">
                     <h4 class="mb-0"><i class="bi bi-briefcase me-2"></i>Experience {% if not experiences %}<span class="text-danger">(Required)</span>{% endif %}</h4>
                 </div>
@@ -340,8 +345,12 @@
                                         </button>
                                         <ul class="dropdown-menu">
                                             <li><a class="dropdown-item" href="{% url 'accounts:edit_experience' exp.id %}">Edit</a></li>
-                                            <li><a class="dropdown-item" href="{% url 'accounts:delete_experience' exp.id %}" 
-                                                   onclick="return confirm('Delete this experience entry?')">Delete</a></li>
+                                            <li>
+                                                <form method="post" action="{% url 'accounts:delete_experience' exp.id %}" style="margin: 0;">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="dropdown-item">Delete</button>
+                                                </form>
+                                            </li>
                                         </ul>
                                     </div>
                                 </div>
@@ -362,7 +371,6 @@
                     {% else %}
                         <p class="text-muted">Please add at least one experience entry to apply for jobs.</p>
                     {% endif %}
-                    
                     <button class="btn btn-outline-primary mt-2" data-bs-toggle="modal" data-bs-target="#addExperienceModal">
                         <i class="bi bi-plus-circle me-1"></i> Add Experience
                     </button>
@@ -370,65 +378,50 @@
             </div>
             
             <!-- Portfolio Section (Mandatory) -->
-            <div class="card mb-4" id="portfolio-section">
+            <!-- Portfolio Section -->
+            <div class="card mb-4" id="portfolio-section" data-bs-toggle="tooltip" title="Showcase your projects or work samples">
                 <div class="card-header">
-                    <h4 class="mb-0"><i class="bi bi-collection me-2"></i>Portfolio {% if not portfolio_items %}<span class="text-danger">(Required)</span>{% endif %}</h4>
+                    <h4 class="mb-0"><i class="bi bi-folder me-2"></i>Portfolio</h4>
                 </div>
                 <div class="card-body">
-                    {% if portfolio_items %}
-                        <div class="row portfolio-gallery">
-                            {% for item in portfolio_items %}
-                            <div class="col-md-4 mb-3">
-                                <div class="portfolio-item card h-100">
-                                    {% if item.media %}
-                                    {% if item.media_type == 'image' %}
-                                        <img src="{{ item.media.url }}" class="card-img-top" alt="{{ item.title }}">
-                                    {% elif item.media_type == 'video' %}
-                                        <video class="card-img-top" controls>
-                                            <source src="{{ item.media.url }}" type="video/mp4">
-                                            Your browser does not support the video tag.
-                                        </video>
-                                    {% else %}
-                                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 150px;">
-                                            <i class="bi bi-file-earmark-text text-muted" style="font-size: 3rem;"></i>
-                                        </div>
-                                    {% endif %}
-                                    {% else %}
-                                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 150px;">
-                                            <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
-                                        </div>
-                                    {% endif %}
-                                    <div class="card-body">
-                                        <h5 class="card-title">{{ item.title }}</h5>
-                                        <p class="card-text text-muted small">{{ item.description|truncatechars:60 }}</p>
-                                        {% if item.is_certificate %}
-                                        <span class="badge bg-info">Certificate</span>
-                                        {% endif %}
-                                    </div>
-                                    <div class="card-footer bg-transparent d-flex justify-content-between">
-                                        <a href="{% url 'accounts:view_portfolio' item.id %}" class="btn btn-sm btn-outline-primary">View Details</a>
-                                        <div class="dropdown">
-                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
-                                                    type="button" data-bs-toggle="dropdown">
-                                                <i class="bi bi-three-dots-vertical"></i>
-                                            </button>
-                                            <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item" href="{% url 'accounts:edit_portfolio' item.id %}">Edit</a></li>
-                                                <li><a class="dropdown-item" href="{% url 'accounts:delete_portfolio' item.id %}" 
-                                                       onclick="return confirm('Delete this portfolio item?')">Delete</a></li>
-                                            </ul>
-                                        </div>
+                    {% if portfolios %}
+                        <div class="portfolio-list">
+                            {% for portfolio in portfolios %}
+                            <div class="portfolio-item mb-3">
+                                <div class="d-flex justify-content-between">
+                                    <h5>{{ portfolio.title }}</h5>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                                type="button" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="{% url 'accounts:edit_portfolio' portfolio.id %}">Edit</a></li>
+                                            <li><a class="dropdown-item" href="{% url 'accounts:view_portfolio' portfolio.id %}">View</a></li>
+                                            <li>
+                                                <form method="post" action="{% url 'accounts:delete_portfolio' portfolio.id %}" style="margin: 0;">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="dropdown-item">Delete</button>
+                                                </form>
+                                            </li>
+                                        </ul>
                                     </div>
                                 </div>
+                                <p class="text-muted mb-1">{{ portfolio.description|truncatewords:20 }}</p>
+                                {% if portfolio.url %}
+                                <p class="small"><a href="{{ portfolio.url }}" target="_blank">View Project</a></p>
+                                {% endif %}
+                                {% if portfolio.media %}
+                                <p class="small"><a href="{{ portfolio.media.url }}" target="_blank">View Media</a></p>
+                                {% endif %}
                             </div>
                             {% endfor %}
                         </div>
                     {% else %}
-                        <p class="text-muted">Please add at least one portfolio item to apply for jobs.</p>
+                        <p class="text-muted">No portfolio entries added. Add projects to showcase your work.</p>
                     {% endif %}
-                    
                     <button class="btn btn-outline-primary mt-2" data-bs-toggle="modal" data-bs-target="#addPortfolioModal">
-                        <i class="bi bi-plus-circle me-1"></i> Add Portfolio Item
+                        <i class="bi bi-plus-circle me-1"></i> Add Portfolio
                     </button>
                 </div>
             </div>
@@ -787,6 +780,50 @@ document.addEventListener('DOMContentLoaded', function() {
     } catch (e) {
         console.error('Script initialization failed:', e);
     }
+});
+
+//profile picture
+function getCookie(name){
+  const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+  return m ? m.pop() : '';
+}
+const csrftoken = getCookie('csrftoken');
+
+document.addEventListener('DOMContentLoaded', function() {
+  const profilePictureInput = document.getElementById('id_profile_picture');
+  const imgEl = document.querySelector('.profile-picture');
+
+  if (profilePictureInput) {
+    profilePictureInput.addEventListener('change', function () {
+      if (!this.files || !this.files[0]) return;
+
+      // instant preview
+      const reader = new FileReader();
+      reader.onload = e => { if (imgEl) imgEl.src = e.target.result; };
+      reader.readAsDataURL(this.files[0]);
+
+      // upload immediately so it persists even if the big form fails
+      const fd = new FormData();
+      fd.append('profile_picture', this.files[0]);
+
+      fetch("{% url 'accounts:upload_profile_picture' %}", {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrftoken },
+        body: fd,
+        credentials: 'same-origin'
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (!data.ok) {
+          alert(data.error || 'Upload failed');
+        } else {
+          // replace src with the real saved URL to bust cache
+          imgEl.src = data.url + '?v=' + Date.now();
+        }
+      })
+      .catch(() => alert('Upload failed'));
+    });
+  }
 });
 </script>
 {% endblock %}

@@ -124,11 +124,11 @@
                             {% endif %}
                         </div>
                         <div class="mb-3">
-                            <label for="{{ form.email.id_for_label }}" class="form-label required-field">Company Email <i class="bi bi-info-circle" data-bs-toggle="tooltip" data-bs-placement="right" title="Use a company email, not free services like @gmail.com"></i></label>
+                            <label for="{{ form.email.id_for_label }}" class="form-label required-field">Business or Institutional Email <i class="bi bi-info-circle" data-bs-toggle="tooltip" data-bs-placement="right" title="Use a business or university email (e.g., hr@techcorp.com or jobs@harvard.edu), not free services like Gmail, Yahoo, or Hotmail"></i></label>
                             <input type="email" name="{{ form.email.name }}" id="{{ form.email.id_for_label }}" 
-                                   class="form-control {% if form.email.errors %}is-invalid{% endif %}" 
-                                   value="{{ form.email.value|default:'' }}" 
-                                   placeholder="e.g., hr@techcorp.com" required>
+                                class="form-control {% if form.email.errors %}is-invalid{% endif %}" 
+                                value="{{ form.email.value|default:'' }}" 
+                                placeholder="e.g., hr@techcorp.com or jobs@harvard.edu" required>
                             {% if form.email.errors %}
                                 <div class="invalid-feedback d-block">
                                     {{ form.email.errors.0 }}
@@ -136,11 +136,11 @@
                             {% endif %}
                         </div>
                         <div class="mb-3">
-                            <label for="{{ form.phone_number.id_for_label }}" class="form-label required-field">Phone Number <i class="bi bi-info-circle" data-bs-toggle="tooltip" data-bs-placement="right" title="Phone number should be in the format +44xxxxxxxxxx"></i></label>
+                            <label for="{{ form.phone_number.id_for_label }}" class="form-label required-field">Phone Number <i class="bi bi-info-circle" data-bs-toggle="tooltip" data-bs-placement="right" title="Phone number should be in the format +CCxxxxxxxxxx"></i></label>
                             <input type="tel" name="{{ form.phone_number.name }}" id="{{ form.phone_number.id_for_label }}" 
-                                   class="form-control {% if form.phone_number.errors %}is-invalid{% endif %}" 
-                                   value="{{ form.phone_number.value|default:'' }}" 
-                                   placeholder="+441234567890" required pattern="r'^\+[1-9]\d{7,14}$'">
+                                class="form-control {% if form.phone_number.errors %}is-invalid{% endif %}" 
+                                value="{{ form.phone_number.value|default:'' }}" 
+                                placeholder="+12025550123" required pattern="^\+[1-9][0-9]{0,2}[0-9]{10}$">
                             {% if form.phone_number.errors %}
                                 <div class="invalid-feedback d-block">
                                     {{ form.phone_number.errors.0 }}

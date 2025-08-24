@@ -27,7 +27,7 @@ class EmployerProfile(models.Model):
     regex=r'^\+\d{12}$',
     message="Phone number must be in the format: '+CCXXXXXXXXXX' (2-digit country code + 10-digit number)."
 )
-    phone_number = models.CharField(validators=[phone_regex], max_length=17)
+    phone_number = models.CharField(validators=[phone_regex], max_length=13)
     country = models.CharField(max_length=100)
     company_logo = models.ImageField(upload_to='company_logos/', blank=True, null=True)
     company_website = models.URLField(blank=True)

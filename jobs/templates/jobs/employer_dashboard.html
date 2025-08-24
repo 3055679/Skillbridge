@@ -201,7 +201,7 @@
         height: calc(100vh - var(--navbar-h, 56px));
         overflow-y: auto;
         z-index: 1020; /* below navbar */
-        background: inherit; /* keep your existing gradient/styles */
+        background: inherit; /*  your existing gradient/styles */
     }
         /* Ensure nav-link text is visible */
     .nav-link {
@@ -213,6 +213,13 @@
 
     .nav-link:hover {
         color: #007bff !important; /* Highlight on hover for better UX */
+    }
+    /* Footer alignment fix */
+    @media (min-width: 768px) {
+    footer {
+        margin-left: var(--sidebar-w, 260px);   /* same offset as dashboard main */
+        width: calc(100% - var(--sidebar-w, 260px));
+    }
     }
 </style>
 {% endblock %}
@@ -286,6 +293,7 @@
                     <a href="{% url 'jobs:post_job' %}" class="btn btn-sm btn-primary">
                         <i class="bi bi-plus-circle me-1"></i> Post New Job
                     </a>
+                    <a href="{% url 'jobs:employer_jobs' %}" class="btn btn-outline-primary">View My Jobs</a>
                 </div>
                 <div class="card-body">
                     <!-- Notifications -->

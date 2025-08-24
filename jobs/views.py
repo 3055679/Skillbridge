@@ -9,7 +9,7 @@ from django.contrib import messages
 from django.utils import timezone
 from accounts.models import StudentProfile, EmployerProfile
 from payment.models import Payment, TaskAssignment
-from .models import ApplicationResponse, Job, Application, Interview, JobQuestion, ProposedInterviewSlot, Notification
+from .models import ApplicationResponse, Job, Application, Interview, JobQuestion, ProposedInterviewSlot, Notification, StudentNotification
 from .forms import ApplicationForm, JobForm, InterviewForm, JobQuestionFormSet, MaxApplicationsForm, ResumeForm
 from django.http import Http404, HttpResponse
 import tempfile
@@ -50,6 +50,13 @@ def student_dashboard(request):
         student.profile_picture, 'images/default-profile.png'
     )
     
+    sp = request.user.studentprofile
+    notifications = (
+        StudentNotification.objects
+        .filter(student=sp)
+        .order_by('-created_at')[:5]
+    )
+
     recent_applications = applications.order_by('-applied_date')[:3]
     
     upcoming_interviews = Interview.objects.filter(
@@ -84,6 +91,7 @@ def student_dashboard(request):
         'total_earnings': total_earnings,
         'task_assignments': task_assignments,
         'sidebar_profile_image_url': sidebar_profile_image_url,
+        'notifications':notifications,
     }
     return render(request, 'jobs/student_dashboard.html', context)
 
@@ -123,123 +131,7 @@ def my_applications(request):
     }
     return render(request, 'jobs/my_applications.html', context)
 
-# @csrf_protect
-# @login_required
-# def apply_job(request, job_id):
-#     job = get_object_or_404(Job, id=job_id, is_active=True)
-#     if not job.is_accepting_applications():
-#         messages.error(request, "This job is closed and no longer accepting applications.")
-#         return redirect('jobs:job_list')
-    
-#     profile = get_object_or_404(StudentProfile, user=request.user)
-    
-#     # Check mandatory fields
-#     missing_fields = []
-#     if not profile.student_id_document:
-#         missing_fields.append("Student ID Document")
-#     if not profile.skills.exists():
-#         missing_fields.append("Skills")
-#     if not profile.work_preference:
-#         missing_fields.append("Work Preference")
-#     if not profile.availability:
-#         missing_fields.append("Availability")
-#     if not profile.resume:
-#         missing_fields.append("Resume")
-#     if not profile.educations.exists():
-#         missing_fields.append("Education")
-#     if not profile.experiences.exists():
-#         missing_fields.append("Experience")
-#     if not profile.portfolio_items.exists():
-#         missing_fields.append("Portfolio Items")
-    
-#     if missing_fields:
-#         messages.error(
-#             request,
-#             f"Please complete the following required fields in your profile: {', '.join(missing_fields)}"
-#         )
-#         return redirect('accounts:student_profile')
 
-#     # 👉 Prevent duplicate applications (works for GET and POST)
-#     existing = Application.objects.filter(student=profile, job=job).first()
-#     if existing:
-#         messages.info(
-#             request,
-#             f"You've already applied to '{job.title}' at {job.employer.company_name} "
-#             f"on {existing.applied_date:%b %d, %Y}."
-#         )
-#         return redirect('jobs:application_detail', pk=existing.pk)
-
-#     if request.method == 'POST':
-#         form = ApplicationForm(request.POST, request.FILES)
-#         if form.is_valid():
-#             cover_letter = form.cleaned_data.get('cover_letter', '')
-#             resume_file = form.cleaned_data.get('resume')
-
-#             # Check again in case of race condition
-#             if not job.is_accepting_applications():
-#                 messages.error(request, "This job just closed and is no longer accepting applications.")
-#                 return redirect('jobs:job_list')
-
-#             try:
-#                 with transaction.atomic():
-#                     application, created = Application.objects.get_or_create(
-#                         student=profile,
-#                         job=job,
-#                         defaults={'cover_letter': cover_letter, 'resume': resume_file}
-#                     )
-#                     if not created:
-#                         # Another request created it first
-#                         messages.info(
-#                             request,
-#                             f"You've already applied to '{job.title}'."
-#                         )
-#                         return redirect('jobs:application_detail', pk=application.pk)
-
-#                     # Save custom question responses
-#                     for question in job.questions.all():
-#                         response_key = f'question_{question.id}'
-#                         response_val = request.POST.get(response_key)
-#                         if response_val:
-#                             ApplicationResponse.objects.create(
-#                                 application=application,
-#                                 question=question,
-#                                 response=response_val
-#                             )
-
-#                     # NEW: store picked assessment skills (max 3) for this application
-#                     picked = form.cleaned_data.get("assessment_skills")
-#                     if picked:
-#                         # ensure clean slate if needed
-#                         ApplicantChosenSkill.objects.filter(application=application).delete()
-#                         ApplicantChosenSkill.objects.bulk_create([
-#                             ApplicantChosenSkill(application=application, skill=s) for s in picked
-#                         ])
-
-#                     # NEW: Create internship assessment & send invite
-#                     blueprint = getattr(job, "assessment_blueprint", None) or AssessmentBlueprint.objects.filter(kind="internship").first()
-#                     if blueprint:
-#                         create_assessment_for_application(application, blueprint)
-
-#                 messages.success(request, 'Application submitted successfully.')
-#                 return redirect('jobs:my_applications')
-
-#             except IntegrityError:
-#                 # Safety net for any rare race condition on the unique constraint
-#                 existing = Application.objects.filter(student=profile, job=job).first()
-#                 if existing:
-#                     messages.info(
-#                         request,
-#                         f"You've already applied to '{job.title}'."
-#                     )
-#                     return redirect('jobs:application_detail', pk=existing.pk)
-#                 messages.error(request, "Something went wrong while submitting your application. Please try again.")
-#                 return redirect('jobs:job_detail', pk=job.pk)
-#         else:
-#             messages.error(request, "Please correct the errors in the form.")
-#     else:
-#         form = ApplicationForm()
-
-#     return render(request, 'jobs/apply_job.html', {'form': form, 'job': job})
 
 @csrf_protect
 @login_required
@@ -320,7 +212,7 @@ def apply_job(request, job_id):
                                 response=response_val
                             )
 
-                    # ✅ Store the assessment picks in ApplicantChosenSkill (NOT application.declared_skills)
+                    #  Store the assessment picks in ApplicantChosenSkill (NOT application.declared_skills)
                     ApplicantChosenSkill.objects.filter(application=application).delete()
                     if picked_skills:
                         ApplicantChosenSkill.objects.bulk_create([
@@ -328,7 +220,7 @@ def apply_job(request, job_id):
                             for s in picked_skills
                         ])
 
-                    # ✅ Create assessment immediately if a blueprint exists
+                    #  Create assessment immediately if a blueprint exists
                     blueprint = AssessmentBlueprint.objects.filter(kind="internship").first()
                     if blueprint:
                         create_assessment_for_application(application, blueprint)
@@ -414,36 +306,8 @@ def mark_notifications_read(request):
     updated = qs.update(is_read=True)
     return JsonResponse({'updated': updated})
 
-@csrf_protect
-@login_required
-def post_job(request):
-    try:
-        employer = request.user.employerprofile
-    except EmployerProfile.DoesNotExist:
-        messages.error(request, 'Please complete your employer profile.')
-        return redirect('accounts:employer_profile')
-       
-    if request.method == 'POST':
-        form = JobForm(request.POST, request.FILES)
-        question_formset = JobQuestionFormSet(request.POST)
-        if form.is_valid() and question_formset.is_valid():
-            job = form.save(commit=False)
-            job.employer = employer
-            job.is_active = True
-            job.posted_date = timezone.now()
-            job.save()
-            for form in question_formset:
-                if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
-                    question = form.save(commit=False)
-                    question.job = job
-                    question.save()
-            messages.success(request, 'Job posted successfully!')
-            return redirect('jobs:employer_dashboard')
-    else:
-        form = JobForm()
-        question_formset = JobQuestionFormSet()
-       
-    return render(request, 'jobs/post_job.html', {'form': form, 'question_formset': question_formset})
+
+
 
 @csrf_protect
 @login_required
@@ -498,7 +362,7 @@ def bulk_manage_applications(request):
         if status in [choice[0] for choice in Application.STATUS_CHOICES]:
             applications.update(status=status)
             if message:
-                # In a real app, send email or notification to students
+                #  send email or notification to students
                 for app in applications:
                     Notification.objects.create(
                         employer=app.job.employer,
@@ -583,21 +447,7 @@ def employer_interviews(request):
     }
     return render(request, 'jobs/employer_interviews.html', context)
 
-# @csrf_protect
-# @login_required
-# def interview_detail(request, pk):
-#     interview = get_object_or_404(Interview, pk=pk)
-#     if request.user.is_student and interview.application.student.user != request.user:
-#         messages.error(request, "You can only view your own interviews.")
-#         return redirect('jobs:student_dashboard')
-#     elif request.user.is_employer and interview.application.job.employer.user != request.user:
-#         messages.error(request, "You can only view interviews for your jobs.")
-#         return redirect('jobs:employer_dashboard')
-#     return render(request, 'jobs/interview_detail.html', {
-#         'interview': interview,
-#         'application': interview.application,
-#         'student_profile': interview.application.student,
-#     })
+
 
 
 @csrf_protect
@@ -1027,7 +877,6 @@ def resume_builder(request):
 
 
     
-# jobs/views.py
 
 
 from accounts.models import StudentProfile
@@ -1388,6 +1237,160 @@ def cache_busted_media_url(filefield, fallback_static_path):
         return f"{filefield.url}?v={mtime}"
     return staticfiles_storage.url(fallback_static_path)
 
+
+@login_required
+def student_notifications(request):
+    sp = request.user.studentprofile
+    notifications = StudentNotification.objects.filter(student=sp).order_by('-created_at')
+    return render(request, 'jobs/student_notifications.html', {'notifications': notifications})
+
+@login_required
+def student_notification_read(request, pk):
+    sp = request.user.studentprofile
+    n = get_object_or_404(StudentNotification, pk=pk, student=sp)
+    n.is_read = True
+    n.save(update_fields=['is_read'])
+    return redirect(n.url or 'jobs:student_notifications')
+
+@login_required
+def student_notifications_mark_all_read(request):
+    sp = request.user.studentprofile
+    StudentNotification.objects.filter(student=sp, is_read=False).update(is_read=True)
+    return redirect('jobs:student_notifications')
+
+
+@csrf_protect
+@login_required
+def post_job(request):
+    if not request.user.is_employer:
+        logger.warning(f"Non-employer user {request.user.username} attempted to access post_job")
+        messages.error(request, 'Only employers can post jobs.')
+        return redirect('accounts:employer_profile')
+
+    try:
+        employer = request.user.employerprofile
+        logger.debug(f"EmployerProfile fields: {[f.name for f in EmployerProfile._meta.get_fields()]}")
+    except EmployerProfile.DoesNotExist:
+        logger.error(f"EmployerProfile does not exist for user {request.user.username}")
+        messages.error(request, 'Please complete your employer profile.')
+        return redirect('accounts:employer_profile')
+       
+    if request.method == 'POST':
+        form = JobForm(request.POST, request.FILES)
+        question_formset = JobQuestionFormSet(request.POST, queryset=JobQuestion.objects.none())
+        logger.debug(f"Form errors: {form.errors}")
+        logger.debug(f"Formset errors: {question_formset.errors}")
+        if form.is_valid() and question_formset.is_valid():
+            try:
+                job = form.save(commit=False)
+                job.employer = employer
+                job.is_active = True
+                job.posted_date = timezone.now()
+                job.save()
+                for form in question_formset:
+                    if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
+                        question = form.save(commit=False)
+                        question.job = job
+                        if form.cleaned_data.get('choices'):
+                            question.choices = form.cleaned_data['choices']
+                        else:
+                            question.choices = []
+                        question.save()
+                messages.success(request, 'Job posted successfully!')
+                return redirect('jobs:employer_dashboard')
+            except Exception as e:
+                logger.error(f"Error saving job: {str(e)}")
+                messages.error(request, 'An error occurred while posting the job. Please try again.')
+        else:
+            messages.error(request, 'Please correct the errors in the form.')
+    else:
+        form = JobForm()
+        question_formset = JobQuestionFormSet(queryset=JobQuestion.objects.none())
+       
+    return render(request, 'jobs/post_job.html', {'form': form, 'question_formset': question_formset})
+
+@csrf_protect
+@login_required
+def employer_jobs(request):
+    if not request.user.is_employer:
+        logger.warning(f"Non-employer user {request.user.username} attempted to access employer_jobs")
+        messages.error(request, 'Only employers can view their jobs.')
+        return redirect('accounts:employer_profile')
+
+    try:
+        employer = request.user.employerprofile
+        jobs = Job.objects.filter(employer=employer).order_by('-posted_date')
+        logger.debug(f"Retrieved {jobs.count()} jobs for employer {request.user.username}")
+    except EmployerProfile.DoesNotExist:
+        logger.error(f"EmployerProfile does not exist for user {request.user.username}")
+        messages.error(request, 'Please complete your employer profile.')
+        return redirect('accounts:employer_profile')
+
+    return render(request, 'jobs/employer_jobs.html', {'jobs': jobs})
+
+@csrf_protect
+@login_required
+def edit_job(request, job_id):
+    if not request.user.is_employer:
+        logger.warning(f"Non-employer user {request.user.username} attempted to access edit_job")
+        messages.error(request, 'Only employers can edit jobs.')
+        return redirect('accounts:employer_profile')
+
+    try:
+        employer = request.user.employerprofile
+    except EmployerProfile.DoesNotExist:
+        logger.error(f"EmployerProfile does not exist for user {request.user.username}")
+        messages.error(request, 'Please complete your employer profile.')
+        return redirect('accounts:employer_profile')
+
+    job = get_object_or_404(Job, id=job_id, employer=employer)
+    logger.debug(f"Editing job {job.title} (ID: {job.id}) for employer {request.user.username}")
+
+    if request.method == 'POST':
+        form = JobForm(request.POST, request.FILES, instance=job)
+        question_formset = JobQuestionFormSet(request.POST, request.FILES, queryset=JobQuestion.objects.filter(job=job))
+        logger.debug(f"Form errors: {form.errors.as_json()}")
+        logger.debug(f"Formset errors: {question_formset.errors}")
+        logger.debug(f"Formset non-form errors: {question_formset.non_form_errors()}")
+        if form.is_valid() and question_formset.is_valid():
+            try:
+                job = form.save(commit=False)
+                job.updated_date = timezone.now()
+                job.save()
+                # Delete questions marked for deletion
+                for form in question_formset.deleted_forms:
+                    if form.instance.pk:
+                        form.instance.delete()
+                # Save updated and new questions
+                for form in question_formset:
+                    if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
+                        question = form.save(commit=False)
+                        question.job = job
+                        if form.cleaned_data.get('choices'):
+                            question.choices = form.cleaned_data['choices']
+                        else:
+                            question.choices = []
+                        question.save()
+                messages.success(request, 'Job updated successfully!')
+                return redirect('jobs:employer_jobs')
+            except Exception as e:
+                logger.error(f"Error updating job: {str(e)}")
+                messages.error(request, 'An error occurred while updating the job. Please try again.')
+        else:
+            messages.error(request, 'Please correct the errors in the form.')
+            logger.debug(f"POST data: {request.POST}")
+    else:
+        form = JobForm(instance=job)
+        question_formset = JobQuestionFormSet(queryset=JobQuestion.objects.filter(job=job))
+
+    return render(request, 'jobs/edit_job.html', {
+        'form': form,
+        'question_formset': question_formset,
+        'job': job,
+        'form_errors': form.errors,
+        'formset_errors': question_formset.errors,
+        'formset_non_form_errors': question_formset.non_form_errors(),
+    })
 
 
 

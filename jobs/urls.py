@@ -40,4 +40,10 @@ urlpatterns = [
     # path('settings/calendar/<uuid:token>.ics', views.settings_calendar, name='settings_calendar'),
     # path('employer/notifications/mark-read/', views.mark_notifications_read, name='mark_notifications_read'),
     path('notifications/mark-read/', views.mark_notifications_read, name='mark_notifications_read'),
+    path('notifications/', views.student_notifications, name='student_notifications'),
+    path('notifications/<int:pk>/read/', views.student_notification_read, name='student_notification_read'),
+    path('notifications/mark-all-read/', views.student_notifications_mark_all_read, name='student_notifications_mark_all_read'),
+
+    path('employer/jobs/', views.employer_jobs, name='employer_jobs'),
+    path('employer/edit-job/<int:job_id>/', views.edit_job, name='edit_job'),
 ]

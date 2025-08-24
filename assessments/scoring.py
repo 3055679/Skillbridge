@@ -41,7 +41,7 @@ def score_and_generate_report(assessment: Assessment) -> Report:
                             r.id, submitted_answer, correct_answer, r.is_correct, r.score)
             elif q.qtype == "short":
                 # Placeholder: Assign a temporary score for testing
-                r.score = 5.0  # Temporary score to avoid 0.0; replace with manual/AI scoring
+                r.score = 5.0  # Temporary score to avoid 0.0; 
                 r.save()
                 total += r.score
                 per_section[q.section] = per_section.get(q.section, 0.0) + r.score
